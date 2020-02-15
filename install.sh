@@ -1,5 +1,5 @@
 #For Manjaro/arch
-sudo pacman -S xprintidle hciconfig upower
+sudo pacman -S xprintidle hciconfig upower tk
 pip3 install face-recognition
 
 #Create virtual env
