@@ -7,5 +7,6 @@ running_test="$( ps -efww | grep '[/]power_management.sh' )"
         echo "[$(date)] : Process is already running $running_test"
         exit
     else
-    bash $SCRIPTPATH/power_management.sh
+    bash $SCRIPTPATH/power_management.sh &
+    bash $SCRIPTPATH/track-laptop-usage.sh &
     fi
