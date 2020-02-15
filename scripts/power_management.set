@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-SCRIPTPATH="$( cd "$(dirname "$1")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
-MainPath=$(cd $SCRIPTPATH/.. && pwd)                            # MainPath of this git repository
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
+MainPath=${SCRIPTPATH%/*}
 
 ##########################################
 # SETTINGS
