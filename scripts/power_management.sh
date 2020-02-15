@@ -102,9 +102,10 @@ function monitor_suspend_time() {
   time2=$(($( date +'%s') - 1 ))
   bluetooth_rx2=$(hciconfig | grep "RX bytes" | awk -F':' '{print $2}' | awk -F' ' '{print $1}')
 
-
+  #Check how long user was inactive
   idle=$(xprintidle)
 
+  #Check if packages are sent to bluetooth speaker
   if [[ $bluetooth_rx!="" ]] && [[ $bluetooth_rx2!="" ]]; then
     bluetooth_music=$((bluetooth_rx-bluetooth_rx2))
   fi
