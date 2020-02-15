@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-import sys, os
+import os
 
 #Path to csv from main dir
-active_log=os.getcwd()+"/log/active.csv"
+dirname, filename = os.path.split(os.path.abspath(__file__))
+active_log=dirname+"/log/active.csv"
 
 plt.close('all')
 
