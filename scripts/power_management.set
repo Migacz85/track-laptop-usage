@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+SCRIPTPATH="$( cd "$(dirname "$1")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
+MainPath=$(cd $SCRIPTPATH/.. && pwd)                            # MainPath of this git repository
+
+##########################################
+# SETTINGS
+suspend_time_set=1              # Suspend computer after inactivity [minutes]
+suspend_on_discharging_set="on" # set to "on" or "off"
+suspend_on_charging_set="on"    #
+min_time_to_log=1               # Seconds
+hibernation_percentage_set=12
+delay_after_waking_up=300       # After waking up from hibernation wait 300 seconds before scripts starts again.
+#Log file names
+log_dir=$MainPath/log/
+log_name=away-time.csv
+log_name_h=away-time-h.txt
+# END SETTINGS
+##########################################
+
+file_path=$log_dir$log_name
+file_path_h=$log_dir$log_name_h
