@@ -48,6 +48,7 @@ function CreateFileIfNone {
       echo "data file not found, creating new one"
       mkdir -p $DIR
       cd $DIR
+      echo  "date usage" > $FileName
       echo "$( date +'%Y/%m/%d' ) $today" > $FileName
     fi
 }
