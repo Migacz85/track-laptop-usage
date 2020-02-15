@@ -3,10 +3,15 @@ import pandas as pd
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+import sys, os
+
+#Path to csv from main dir
+active_log=os.getcwd()+"/log/active.csv"
 
 plt.close('all')
-data = pd.read_csv('~/stats/log/log-away-time.csv', sep=" ", infer_datetime_format=True)
-adata = pd.read_csv('~/stats/log/active.csv', sep=" ", infer_datetime_format=True)
+
+# data = pd.read_csv('~/stats/log/away-time.csv', sep=" ", infer_datetime_format=True)
+adata = pd.read_csv(active_log, sep=" ", infer_datetime_format=True)
 
 # If you want to filter data
 # data_filtered=data[data.time_suspend > 5000]
@@ -14,12 +19,12 @@ adata = pd.read_csv('~/stats/log/active.csv', sep=" ", infer_datetime_format=Tru
 # data_filtered.time = pd.to_datetime(data_filtered['date_end'],  format='%Y-%m-%d')
 # data_filtered.set_index(['date_end'],inplace=True)
 
-data['time'] = pd.to_datetime(data['date_end'],  format='%Y-%m-%d')
-data.set_index(['date_end'],inplace=True)
-data = data.sum(level="date_end")
-data['Estimated away time'] = data['time_suspend']/60/60
-# data['Estimated usage time'] = 24 - data['Estimated away time']
-del data['time_suspend']
+# data['time'] = pd.to_datetime(data['date_end'],  format='%Y-%m-%d')
+# data.set_index(['date_end'],inplace=True)
+# data = data.sum(level="date_end")
+# data['Estimated away time'] = data['time_suspend']/60/60
+# # data['Estimated usage time'] = 24 - data['Estimated away time']
+# del data['time_suspend']
 
 
 adata['time'] = pd.to_datetime(adata['date'],  format='%Y-%m-%d')
@@ -29,7 +34,7 @@ adata['Laptop usage time [h]'] = adata['usage']/60/60
 # adata['Away time'] = 24 - adata['Laptop usage time [h]']
 del adata['usage']
 
-adata.plot(kind="bar");
+adata.plot(kind="bar")
 
 # total_time_suspend=data.sum(level="date_end")
 # total_time_suspend.plot(subplots=True, kind="bar")
