@@ -7,7 +7,6 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this s
 MainPath=${SCRIPTPATH%/*}
 ########################################
 
-echo $MainPath
 DIR=$MainPath/log/ #DIR name need to end with / sign
 FileName="$2"
 FilePath="$DIR$FileName"
