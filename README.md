@@ -12,13 +12,22 @@ usage per day. And possibility to draw simple chart of user activity in `matplot
 - Give short information to user how long he was away as soon as lid is open.
   Using 'notify-send'
 - Log how long computer was suspended/hibernated. 
-- Log how long computer was used on daily basis
+- Log how long computer was used on daily/hourly basis
 - Make a simple chart showing how long computer was used on daily basis. [ show-graph.sh, chart.py ]
+
+## Charting
+- Plot bar chart of total usage time per day.
+- Plot heatmap of laptop usage in hourly precision.
+  -A day is divided in 24 hours, if user spent whole time in this hour without
+  any breaks this hour is counted as 60 (60 whole minutes that user spent in
+  this hour). If for example user had 15 minutes break in given hour it will
+  result in score 45.
+
+[![Heatmap](https://i.imgur.com/FTpKIK1.png)]
 
 ## Power management features
 - Control when user computer will be suspended. [ power-management.sh ]
-  - Do not suspend if there is music playing on local sound card or bluetooth speaker
-  - Do not suspend if camera will detect face
+  - Do not suspend if there is music playing on local sound card or Bluetooth speaker
   - Suspend after X inactivity time
 - Before going in to suspend mode check if user is sitting at front of computer: [ power-management.sh ]
   1. Make a picture
@@ -46,7 +55,7 @@ suspend_on_charging_set="on"    #
 After changing values restart of script is not needed
 
 # Troubleshooting
-
+    
 If you encounter problems you can run directly: 
 
 - `bash power_management.sh`
