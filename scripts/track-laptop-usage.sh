@@ -3,7 +3,12 @@
 # Count total amount of seconds of laptop use. By each day.
 #
 ########################################
-DIR=~/stats/log/ #DIR name need to end with / sign
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
+MainPath=${SCRIPTPATH%/*}
+########################################
+
+echo $MainPath
+DIR=$MainPath/log/ #DIR name need to end with / sign
 FileName="$2"
 FilePath="$DIR$FileName"
 sleep_time=60 #How often log active time

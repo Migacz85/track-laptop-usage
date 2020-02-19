@@ -129,7 +129,7 @@ function monitor_suspend_time() {
         charging_state="charging"
     fi
 
-    echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))" > $log_dir/power-management.log
+    echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))" > $log_dir""power-management.log
 
 
     if [[ $idle -gt $suspend_time_set ]] && [[ $music_playing == 0 ]]; then
@@ -180,7 +180,7 @@ function monitor_suspend_time() {
 
 # Main loop
 for (( i = 0; i == 0; )); do
-    source $MainPath/scripts/power_management.set
+    source $MainPath""/scripts/power_management.set
 
     suspend_time_set=$(($suspend_time_set * 60000))
     # information_to_user
