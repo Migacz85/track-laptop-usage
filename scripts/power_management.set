@@ -12,8 +12,8 @@ hibernation_percentage_set=12
 delay_after_waking_up=300       # After waking up from hibernation wait 300 seconds before scripts starts again.
 #Log file names
 log_dir=$MainPath/log/
-log_name=away-time.csv
-log_name_h=away-time-h.txt
+log_name=away-time.log
+log_name_h=away-time-h.log
 # END SETTINGS
 ##########################################
 

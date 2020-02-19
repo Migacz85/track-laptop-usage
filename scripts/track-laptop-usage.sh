@@ -4,7 +4,7 @@
 #
 ########################################
 DIR=~/stats/log/ #DIR name need to end with / sign
-FileName=$2
+FileName="$2"
 FilePath="$DIR$FileName"
 sleep_time=60 #How often log active time
 track_type="$1"
@@ -16,7 +16,6 @@ echo "You need to specifiy type of tracking eg 'hourly' or 'daily' or 'minutes' 
 echo "bash track-laptop-usgae.sh daily logfile.log"
 exit
 fi
-
 
 function today {
   today=$( date +'%Y/%m/%d' )
@@ -72,7 +71,7 @@ function CreateFileIfNone {
       mkdir -p $DIR
       cd $DIR
       echo  "date usage" > $FileName
-      echo $today 0 > $FileName
+      echo $today 0 >> $FileName
     fi
 }
 
@@ -97,7 +96,7 @@ function UpdateTimeInFile {
           # Update time for today in file
           add_time=$(( $last_saved_value + $sleep_time ))
           # notify-send $(show_time $add_time)
-          head -n -1 $FilePath > temp.txt ; mv temp.txt $FilePath
+          head -n -1 $FilePath > "$FileName.temp" ; mv "$FileName.temp" $FilePath
           echo "$today $add_time" >> $FilePath
         ## If not just add new date with counted time
         else

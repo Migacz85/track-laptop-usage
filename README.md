@@ -23,7 +23,7 @@ usage per day. And possibility to draw simple chart of user activity in `matplot
   this hour). If for example user had 15 minutes break in given hour it will
   result in score 45.
 
-[![Heatmap](https://i.imgur.com/FTpKIK1.png)]
+![Heatmap](https://i.imgur.com/FTpKIK1.png)
 
 ## Power management features
 - Control when user computer will be suspended. [ power-management.sh ]
@@ -40,11 +40,19 @@ usage per day. And possibility to draw simple chart of user activity in `matplot
 On arch/manjaro run:
 - `bash install.sh`
 
-To use face recognition before suspending computer and showing small
-notification how long you was away from last time (and more):
-- `bash active.sh start_power_management.sh`
+To start tracking time - and suspending computer shortly after when you are away.
+- `bash start_power_management.sh`
 
-3 Settings 
+Or if you want just to track time without controlling when your laptop will be
+suspended, start this script on every start of your system: 
+(Beware that way you will track how long your computer was turn on.)
+- ` bash track-laptop-usage.sh daily daily-laptop.log
+    bash track-laptop-usage.sh hourly hourly-laptop.log `
+
+To show plot you need to run:
+- `bash show-graph.sh` 
+
+# Settings 
 
 You can set settings in `power_management.set` for example:
 `bash
@@ -62,21 +70,21 @@ If you encounter problems you can run directly:
 
 And you will have access to state of variables stored in script. 
 
-# Log files
+## Log files
 By default you can find log files of active and away time in dir `log` in form:
 
 - | date_start | time_start | date_end   | time_end | time_away    |
-- | 2020/02/04 | 12:28      | 2020/02/04 | 12:28    | 1396`        |
+- | 2020/02/04 | 12:28      | 2020/02/04 | 12:28    | 1396         |
 
 `time_away` is measured in seconds. But in 'file time_suspend_h' there is human
 readable form like `1h 34min`
 
 In `active.csv` you can find total computer usage time by date in `seconds`
 
-# Plotting charts
+## Plotting charts
 
-1. Check if path to log file in `chart.py` is correct 
-2. To show plot you need to run `bash show-graph.sh` 
+1. Check if .log files are created in log folder and records created.
+2. Check if path to log file in `chart.py` is correct 
 
 # Summary 
 

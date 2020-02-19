@@ -2,13 +2,13 @@
 #Global variable
 hibernation=0
 
-if [ ! -f $file_path ] || [ ! -f $file_path_h ]; then
-    echo "data file not found, creating new one"
-    mkdir -p $log_dir
-    cd $log_dir
-    echo "date_start time_start date_end time_end time_suspend "  > $log_name
-    echo "date_start time_start date_end time_end time_suspend "  > $log_name_h
-fi
+# if [ ! -f $file_path ] || [ ! -f $file_path_h ]; then
+#     echo "data file not found, creating new one"
+#     mkdir -p $log_dir
+#     cd $log_dir
+#     echo "date_start time_start date_end time_end time_suspend "  > $log_name
+#     echo "date_start time_start date_end time_end time_suspend "  > $log_name_h
+# fi
 
 # Information to the user
 function information_to_user {
@@ -67,11 +67,12 @@ function monitor_battery_and_hibernate() {
         notify-send "I was hibernated for: $sleep_time "
          # Saving to log
          notify-send "Welcome back" "You was away for: $away_time"
-         echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path
-         echo " "$(($SECONDS)) >> $file_path
+         # Dont log this
+         # echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path
+         # echo " "$(($SECONDS)) >> $file_path
          #Human read
-         echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path_h
-         echo " "$sleep_time >> $file_path_h
+         # echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path_h
+         # echo " "$sleep_time >> $file_path_h
 
         echo "Script will start monitoring battery after $delay_after_waking_up seconds."
         sleep $delay_after_waking_up
@@ -162,14 +163,13 @@ function monitor_suspend_time() {
 
          # Saving to log
          notify-send "Welcome back" "You was away for: $away_time_h"
-         echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path
-         echo " "$away_time_sec >> $file_path
-         #Human read
-         echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path_h
-         echo " "$away_time_h >> $file_path_h
-         #Active time 
-         # echo -n $(date +'%Y/%m/%d %H:%M') >> $DIR3
-         # echo " "$detect_suspend_mode >> $DIR3
+
+         # Dont log
+         # echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path
+         # echo " "$away_time_sec >> $file_path
+         # #Human read
+         # echo -n $(date +'%Y/%m/%d %H:%M' --date="-$away_time_sec sec")" "$(date +'%Y/%m/%d %H:%M') >> $file_path_h
+         # echo " "$away_time_h >> $file_path_h
 
      fi
   fi
