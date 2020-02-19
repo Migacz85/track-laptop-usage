@@ -9,7 +9,7 @@ import os
 #Path to csv from main dir
 dirname, filename = os.path.split(os.path.abspath(__file__))
 active_log=dirname+"/log/daily-laptop.log"
-away_log=dirname+"/log/away-time.csv"
+hourly_log=dirname+"/log/hourly-laptop.log"
 
 plt.close('all')
 
@@ -28,7 +28,7 @@ plt.show()
 date = pd.date_range('2020-02-18', periods=10*12, freq='1h')
 freq = np.random.poisson(lam=1, size=(len(date)))
 type(freq)
-freq = pd.read_csv('/home/migacz/stats/log/hourly-laptop.log', sep=" ")
+freq = pd.read_csv(hourly_log, sep=" ")
 freq['at2'] = freq['usage']/60
 freq['date']=pd.to_datetime(freq['date'],  format='%Y/%m/%d|%H')
 freq['date_h']=freq['date'].dt.hour
