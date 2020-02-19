@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #Global variable
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
+MainPath=${SCRIPTPATH%/*}
+
 hibernation=0
 
 # if [ ! -f $file_path ] || [ ! -f $file_path_h ]; then
@@ -177,7 +180,8 @@ function monitor_suspend_time() {
 
 # Main loop
 for (( i = 0; i == 0; )); do
-    source $HOME/stats/scripts/power_management.set
+    source $MainPath/scripts/power_management.set
+
     suspend_time_set=$(($suspend_time_set * 60000))
     # information_to_user
     monitor_suspend_time
