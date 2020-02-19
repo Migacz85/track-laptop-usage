@@ -45,6 +45,14 @@ suspend_on_charging_set="on"    #
 `
 After changing values restart of script is not needed
 
+# Troubleshooting
+
+If you encounter problems you can run directly: 
+
+- `bash power_management.sh`
+
+And you will have access to state of variables stored in script. 
+
 # Log files
 By default you can find log files of active and away time in dir `log` in form:
 

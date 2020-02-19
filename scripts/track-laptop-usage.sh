@@ -4,10 +4,33 @@
 #
 ########################################
 DIR=~/stats/log/ #DIR name need to end with / sign
-FileName="active.csv"
+FileName=$2
 FilePath="$DIR$FileName"
 sleep_time=60 #How often log active time
+track_type="$1"
 ########################################
+
+if [[ $1 != "daily" ]] && [[ $1 != "hourly" ]] && [[ $1 != "minutes" ]]; then
+echo "No parameters provided"
+echo "You need to specifiy type of tracking eg 'hourly' or 'daily' or 'minutes' and name of the faile example:"
+echo "bash track-laptop-usgae.sh daily logfile.log"
+exit
+fi
+
+
+function today {
+  today=$( date +'%Y/%m/%d' )
+  if [[ "$track_type" == "daily" ]]; then
+  today=$( date +'%Y/%m/%d' )
+  fi
+  if [[ "$track_type" == "hourly" ]]; then
+  today=$( date +'%Y/%m/%d|%H' )
+  fi
+  if [[ "$track_type" == "minutes" ]]; then
+  today=$( date +'%Y/%m/%d|%H:%M' )
+  fi
+}
+today
 
 function show_time () {
     num=$1
@@ -49,7 +72,7 @@ function CreateFileIfNone {
       mkdir -p $DIR
       cd $DIR
       echo  "date usage" > $FileName
-      echo "$( date +'%Y/%m/%d' ) $today" > $FileName
+      echo $today 0 > $FileName
     fi
 }
 
@@ -65,7 +88,8 @@ function GetLastSavedValue {
 
 function UpdateTimeInFile {
       sleep $sleep_time
-      today=$( date +'%Y/%m/%d' )
+      # today=$( date +'%Y/%m/%d' )
+      today
         ## Check if the last date in a file is same as today date
         if [[ $last_date == $today ]]; then
           # Count how long user spent on task

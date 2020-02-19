@@ -102,10 +102,9 @@ function monitor_suspend_time() {
   time2=$(($( date +'%s') - 1 ))
   bluetooth_rx2=$(hciconfig | grep "RX bytes" | awk -F':' '{print $2}' | awk -F' ' '{print $1}')
 
-  #Check how long user was inactive
+
   idle=$(xprintidle)
 
-  #Check if packages are sent to bluetooth speaker
   if [[ $bluetooth_rx!="" ]] && [[ $bluetooth_rx2!="" ]]; then
     bluetooth_music=$((bluetooth_rx-bluetooth_rx2))
   fi
@@ -126,7 +125,8 @@ function monitor_suspend_time() {
         charging_state="charging"
     fi
 
-    echo -en "\r Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))"
+    echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))" > $log_dir/power-management.log
+
 
     if [[ $idle -gt $suspend_time_set ]] && [[ $music_playing == 0 ]]; then
 
