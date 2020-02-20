@@ -1,19 +1,20 @@
 # Overview 
 
-Scripts to give user information how long user was away after waking up
-machine after suspend/hibernation mode. As well with tracking a total laptop
-usage per day. And possibility to draw simple chart of user activity in `matplotlib` included.
+Be mindfull how much daily and in what houres you are using your computer. 
+Track your total laptop usage per day. Be informed how long you was away from
+computer after waking up your machine in small handy notification. 
+Check detailed information when and how long you was active or away from
+computer in nicley plotted heatmap chart.
+As a bonus suspend your computer in more intelligent way. 
 
 # Features 
 
 ## Tracking features
-- Track your total laptop usage per day in houres [ track-laptop-usage.sh]
-- Track how long user was away from computer. [ power-management.sh ] 
-- Give short information to user how long he was away as soon as lid is open.
-  Using 'notify-send'
-- Log how long computer was suspended/hibernated. 
-- Log how long computer was used on daily/hourly basis
-- Make a simple chart showing how long computer was used on daily basis. [ show-graph.sh, chart.py ]
+- Track your total laptop usage per day in houres, and total daily usage [ track-laptop-usage.sh]
+- Give short information to user as soon as lid is open: 
+  - how long computer was suspended [ power-management.sh]
+  - how long computer was hibernated. [ power-management.sh] 
+- Make a simple chart showing how long computer was used on daily basis. [ track-laptop-usage.sh, show-graph.sh, chart.py ]
 
 ## Charting
 - Plot bar chart of total usage time per day.
@@ -27,27 +28,41 @@ usage per day. And possibility to draw simple chart of user activity in `matplot
 
 ## Power management features
 - Control when user computer will be suspended. [ power-management.sh ]
-  - Do not suspend if there is music playing on local sound card or Bluetooth speaker
   - Suspend after X inactivity time
+  - Do not suspend if there is music playing on local sound card or Bluetooth speaker
 - Before going in to suspend mode check if user is sitting at front of computer: [ power-management.sh ]
   1. Make a picture
   2. Check if on picture is a face 
   3. If not - suspend. 
+  4. Last check is stored in `suspend_check.jpg` file
 - Prevent from running script twice [ start_power_management.sh ]
+
+
+# Bugs:
+
+- [x] Once I found computer was not supsending because sound card was giving
+      false information that is "RUNNING", `pulseaudio -k`, imediattely solved problem.
 
 # Installation
 
 On arch/manjaro run:
 - `bash install.sh`
+if you are on different distro inspect `install.sh` and install packages
+specified in this file using your package mangager.
 
 To start tracking time - and suspending computer shortly after when you are away.
 - `bash start_power_management.sh`
 
 Or if you want just to track time without controlling when your laptop will be
-suspended, start this script on every start of your system: 
-(Beware that way you will track how long your computer was turn on.)
-- ` bash track-laptop-usage.sh daily daily-laptop.log
-    bash track-laptop-usage.sh hourly hourly-laptop.log `
+suspended, start this script on every fresh start of your system: 
+
+- ` bash track-laptop-usage.sh daily daily-laptop.log `
+- ` bash track-laptop-usage.sh hourly hourly-laptop.log `
+
+Note: 
+Beware that way you will track how long your computer was turn on.
+So if you will go away, and your computer will be open this will count.
+You can set your current power management to suspend your computer more quickly.
 
 To show plot you need to run:
 - `bash show-graph.sh` 
@@ -68,23 +83,13 @@ If you encounter problems you can run directly:
 
 - `bash power_management.sh`
 
-And you will have access to state of variables stored in script. 
-
-## Log files
-By default you can find log files of active and away time in dir `log` in form:
-
-- | date_start | time_start | date_end   | time_end | time_away    |
-- | 2020/02/04 | 12:28      | 2020/02/04 | 12:28    | 1396         |
-
-`time_away` is measured in seconds. But in 'file time_suspend_h' there is human
-readable form like `1h 34min`
-
-In `active.csv` you can find total computer usage time by date in `seconds`
-
-## Plotting charts
-
 1. Check if .log files are created in log folder and records created.
 2. Check if path to log file in `chart.py` is correct 
+
+# TODO: 
+- [ ] Do not suspend computer if there is ongoing installation from pacman.
+- [ ] Notify user that he exceeded productive daily/weekly limit of hours.
+- [ ] Simplify installation process to bare minimum.
 
 # Summary 
 
