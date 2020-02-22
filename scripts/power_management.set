@@ -5,6 +5,7 @@ MainPath=${SCRIPTPATH%/*}
 ##########################################
 # SETTINGS
 suspend_time_set=1              # Suspend computer after inactivity [minutes]
+suspend_on=1                    # Turn on/off suspending
 suspend_on_discharging_set="on" # set to "on" or "off"
 suspend_on_charging_set="on"    #
 min_time_to_log=1               # Seconds

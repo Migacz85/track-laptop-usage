@@ -132,7 +132,7 @@ function monitor_suspend_time() {
     echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))" > $log_dir""power-management.log
 
 
-    if [[ $idle -gt $suspend_time_set ]] && [[ $music_playing == 0 ]]; then
+    if [[ $idle -gt $suspend_time_set ]] && [[ $music_playing == 0 ]] && [[ $suspend_on == 1 ]]; then
 
         ffmpeg -f video4linux2 -s 1920x1080 -i /dev/video0 -ss 0:0:2 -frames 1 ~/stats/suspend_check.jpg -y &
         face=$(face_detection ~/stats/suspend_check.jpg)
