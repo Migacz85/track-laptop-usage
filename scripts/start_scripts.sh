@@ -5,7 +5,7 @@ MainPath=${SCRIPTPATH%/*}
 
 #enter to venv
 source $MainPath/charts/bin/activate
-running_test="$( ps -efww | grep '[/]power_management.sh' )"
+running_test="$( ps -efww | grep '[/]track-laptop-usage.sh' )"
     if [[ ! -z $running_test ]]; then
         echo "[$(date)] : Power management already running $running_test"
     else

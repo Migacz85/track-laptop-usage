@@ -5,14 +5,14 @@
 ########################################
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
 MainPath=${SCRIPTPATH%/*}
-########################################
-
-DIR=$MainPath/log/ #DIR name need to end with / sign
-FileName="$2"
-FilePath="$DIR$FileName"
-sleep_time=60 #How often log active time
 track_type="$1"
+FileName="$2"
 ########################################
+track_till=120 #[sec] If user is idle for less than that, the active time on laptop will not count
+DIR=$MainPath/log/ #DIR name need to end with / sign
+sleep_time=60 #[sec] How often write to log file
+########################################
+FilePath="$DIR$FileName"
 
 if [[ $1 != "daily" ]] && [[ $1 != "hourly" ]] && [[ $1 != "minutes" ]]; then
 echo "No parameters provided"
@@ -89,10 +89,26 @@ function GetLastSavedValue {
   last_saved_value=$(cut -d " " -f 2 <<< "$line")
 }
 
+function LazyUser {
+      idle=$(xprintidle)
+      idle=$(($idle / 1000))
+      lazy_user=0
+
+      if [[  $idle -gt $track_till ]]; then
+      lazy_user=1
+      fi
+
+      if [[  $idle -eq $track_till ]]; then
+      notify-send "$track_till seconds of inactivity" "This time dose not count to active time"
+      fi
+
+      echo "lazy user: $lazy_user Idle: $idle"
+}
+
 function UpdateTimeInFile {
-      sleep $sleep_time
       # today=$( date +'%Y/%m/%d' )
       today
+
         ## Check if the last date in a file is same as today date
         if [[ $last_date == $today ]]; then
           # Count how long user spent on task
@@ -111,8 +127,16 @@ function UpdateTimeInFile {
 ########################################
 while true;
     do
+
+      sleep $sleep_time
       CreateFileIfNone
+      LazyUser
+
+      if [[  $lazy_user == 0 ]]; then
       GetLastSavedDate
       GetLastSavedValue
       UpdateTimeInFile
+      fi
+
+
     done
