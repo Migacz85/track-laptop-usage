@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#Global variable
+# Global variable
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # Path of this script
 MainPath=${SCRIPTPATH%/*}
 
@@ -12,17 +12,6 @@ hibernation=0
 #     echo "date_start time_start date_end time_end time_suspend "  > $log_name
 #     echo "date_start time_start date_end time_end time_suspend "  > $log_name_h
 # fi
-
-# Information to the user
-function information_to_user {
-        clear
-        echo "I will hibernate when battery will be bellow $hibernation_percentage_set%"
-        echo "I will suspend computer after $(($suspend_time_set/60000)) minutes"
-        echo "Stats how long user was away will be saved in: "
-        echo
-        echo  $file_path
-        echo  $file_path_h
-}
 
 # Functions
 
@@ -106,20 +95,39 @@ function monitor_suspend_time() {
   time2=$(($( date +'%s') - 1 ))
   bluetooth_rx2=$(hciconfig | grep "RX bytes" | awk -F':' '{print $2}' | awk -F' ' '{print $1}')
 
-
   idle=$(xprintidle)
 
+  # Check if music is playing over bluetooth
   if [[ $bluetooth_rx!="" ]] && [[ $bluetooth_rx2!="" ]]; then
     bluetooth_music=$((bluetooth_rx-bluetooth_rx2))
   fi
 
 
+  # Check if music is playing over soundcard
    music_playing="$(cat /proc/asound/card*/pcm*/sub*/status | grep "RUNNING")" # state: RUNNING
    if [[ $music_playing == "state: RUNNING" ]] || [[  $bluetooth_music > 100 ]]; then
       music_playing=1
       else
       music_playing=0
    fi
+
+  # Check if there is ongoing synhronisation with the phone
+  running_test="$( ps -efww | grep '[/]sync-phone.sh' )"
+    if [[ ! -z $running_test ]]; then
+        sync_phone=1
+    else
+        sync_phone=0
+    fi
+
+  # Check if there is pacman running
+  running_test="$( ps -efww | grep '[p]acman' )"
+    if [[ ! -z $running_test ]]; then
+        pacman=1
+    else
+        pacman=0
+    fi
+
+
 
    battery="$( upower -i $(upower -e | grep '/battery') | grep --color=never -E percentage|xargs|cut -d' ' -f2|sed s/%// )"
     #When battery is 100% is not showing "discharging" but some wierd stuff
@@ -129,29 +137,31 @@ function monitor_suspend_time() {
         charging_state="charging"
     fi
 
-    echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000))" > $log_dir""power-management.log
+    echo  "$(date) Rx:$bluetooth_rx Tx:$bluetooth_rx2 Battery: $battery Charging_state:$charging_state Music_playing: $music_playing Suspend_after[m]: $(($suspend_time_set/60/1000)) Idle: $(($idle/1000)) Pacman: $pacman Phone-sync: $sync_phone"  > $log_dir""power-management.log
 
+    # Putting it simple: Don't suspend if there is music_playing from bluetooth or soundcard or face is recognised or there is ongoing sync with phone
 
     if [[ $idle -gt $suspend_time_set ]] && [[ $music_playing == 0 ]] && [[ $suspend_on == 1 ]]; then
 
-        ffmpeg -f video4linux2 -s 1920x1080 -i /dev/video0 -ss 0:0:2 -frames 1 ~/stats/suspend_check.jpg -y &
+        ffmpeg -hide_banner -loglevel panic -f video4linux2 -s 1920x1080 -i /dev/video0 -ss 0:0:2 -frames 1 ~/stats/suspend_check.jpg -y > ffmpeg.log
         face=$(face_detection ~/stats/suspend_check.jpg)
         if [[ $face != "" ]]; then
+            echo "$(date) Face detected - suspend prevented"
+            echo "" 
             xdotool mousemove 1000 500 # idle=0
         fi
 
-
-        if   [[ $battery == "100" ]] && [[ $suspend_on_discharging_set == "on" ]] && [[ $face == "" ]] ; then
+        if   [[ $battery == "100" ]] && [[ $suspend_on_discharging_set == "on" ]] && [[ $face == "" ]] && [[ $sync_phone == 0 ]] && [[ $pacman == 0 ]] ; then
             systemctl suspend
             xdotool mousemove 1000 500 # idle=0
         fi
 
-        if   [[ $charging_state == "discharging" ]] && [[ $suspend_on_discharging_set == "on" ]] && [[ $face == "" ]] ; then
+        if   [[ $charging_state == "discharging" ]] && [[ $suspend_on_discharging_set == "on" ]] && [[ $face == "" ]] && [[ $sync_phone == 0 ]] && [[ $pacman == 0 ]]; then
             systemctl suspend
             xdotool mousemove 1000 500 # idle=0
         fi
 
-        if   [[ $charging_state == "charging" ]] && [[ $suspend_on_charging_set == "on" ]] && [[ $face == "" ]] ; then
+        if   [[ $charging_state == "charging" ]] && [[ $suspend_on_charging_set == "on" ]] && [[ $face == "" ]] && [[ $sync_phone == 0 ]]   && [[ $pacman == 0 ]]; then
             systemctl suspend
             xdotool mousemove 1000 500 # idle=0
         fi

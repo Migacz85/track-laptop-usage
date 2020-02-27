@@ -11,7 +11,6 @@ running_test="$( ps -efww | grep '[/]track-laptop-usage.sh' )"
     else
 
     (trap 'kill 0' SIGINT;
-     # bash $SCRIPTPATH/power_management.sh  &
      bash $SCRIPTPATH/track-laptop-usage.sh daily daily-laptop.log &
      bash $SCRIPTPATH/track-laptop-usage.sh hourly hourly-laptop.log
     )
