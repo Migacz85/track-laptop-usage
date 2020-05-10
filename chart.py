@@ -25,12 +25,17 @@ adata.plot(kind="bar")
 plt.show()
 
 # create dataframe with datetime as index and aggregated (frequency) values
-date = pd.date_range('2020-02-18', periods=10*12, freq='1h')
+date = pd.date_range('2020-04-18', periods=10*12, freq='1h')
 freq = np.random.poisson(lam=1, size=(len(date)))
 type(freq)
 freq = pd.read_csv(hourly_log, sep=" ")
+
+#last 100 records | ideally that should be filtered by last N days
+freq=freq[-100:]
 freq['at2'] = freq['usage']/60
 freq['date']=pd.to_datetime(freq['date'],  format='%Y/%m/%d|%H')
+
+
 freq['date_h']=freq['date'].dt.hour
 freq['at2']
 
