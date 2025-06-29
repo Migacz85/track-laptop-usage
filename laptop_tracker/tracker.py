@@ -48,7 +48,11 @@ class LaptopTracker:
             # Get system idle time (Linux specific)
             with open('/proc/uptime', 'r') as f:
                 uptime, idle_time = map(float, f.read().split())
-            return idle_time > self.idle_threshold
+            
+            idle_sec = idle_time
+            is_idle = idle_sec > self.idle_threshold
+            logging.debug(f"Idle check: {idle_sec}s (threshold: {self.idle_threshold}s) - {'Idle' if is_idle else 'Active'}")
+            return is_idle
         except Exception as e:
             logging.warning(f"Could not check idle time: {e}")
             return False
@@ -59,10 +63,13 @@ class LaptopTracker:
         lines = []
         updated = False
 
+        logging.debug(f"Updating log for {timestamp} with {usage}s")
+
         # Read existing log entries
         if self.log_file.exists():
             with open(self.log_file, 'r') as f:
                 lines = f.readlines()
+            logging.debug(f"Found {len(lines)} existing log entries")
 
         # Process entries
         new_lines = []
@@ -101,7 +108,10 @@ class LaptopTracker:
         
         while self.running:
             if not self._is_idle():
+                logging.debug(f"User active - adding {self.update_interval}s")
                 self._log_entry(self.update_interval)
+            else:
+                logging.debug("User idle - skipping update")
             time.sleep(self.update_interval)
 
     @classmethod
