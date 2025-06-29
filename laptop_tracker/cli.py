@@ -312,16 +312,14 @@ def status():
         print("Tracker is not running")
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-def daily(debug):
+def daily():
     """
     Show daily usage chart.
     
     Displays a bar chart of your daily computer usage over time.
     """
     # Set log level
-    log_level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
     
     logging.debug("Generating daily usage chart")
     log_dir = Path(__file__).parent.parent / "log"
@@ -343,16 +341,14 @@ def daily(debug):
     plt.show()
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-def hourly(debug):
+def hourly():
     """
     Show hourly usage heatmap.
     
     Displays a heatmap visualization of your computer usage by hour.
     """
     # Set log level
-    log_level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
     
     logging.debug("Generating hourly usage heatmap")
     log_dir = Path(__file__).parent.parent / "log"
@@ -550,10 +546,9 @@ def hourly(debug):
         print("Failed to generate heatmap. Check logs for details.")
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
 @click.option('--daily', is_flag=True, help='Show daily usage summary')
 @click.option('--hour', is_flag=True, help='Show hourly usage details')
-def logs(debug, daily, hour):
+def logs(daily, hour):
     """
     Show usage data - daily summary or hourly details.
     
@@ -561,8 +556,7 @@ def logs(debug, daily, hour):
     Use --daily for daily summaries or --hour for hourly breakdowns.
     """
     # Set log level and get logger
-    log_level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
     logger = logging.getLogger(__name__)
     
     log_dir = Path(__file__).parent.parent / "log"
