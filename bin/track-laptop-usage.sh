@@ -55,14 +55,18 @@ init_log() {
 # Update log with current usage
 update_log() {
     local timestamp=$(get_timestamp)
-    local compare_timestamp=$(get_compare_timestamp)
     local last_line=$(tail -n 1 "$LOG_PATH")
     local last_date=${last_line%% *}
     local last_usage=${last_line##* }
 
-    # Extract just the date and hour for comparison
-    last_compare_date=$(echo "$last_date" | cut -d' ' -f1-2)
-    current_compare_date=$(echo "$timestamp" | cut -d' ' -f1-2)
+    # For hourly tracking, compare just the date and hour portion
+    if [[ "$TRACK_TYPE" == "hourly" ]]; then
+        last_compare_date=$(echo "$last_date" | cut -d' ' -f1-2)
+        current_compare_date=$(echo "$timestamp" | cut -d' ' -f1-2)
+    else
+        last_compare_date=$last_date
+        current_compare_date=$timestamp
+    fi
 
     if [[ "$last_compare_date" == "$current_compare_date" ]]; then
         # Update existing entry by modifying the last line
