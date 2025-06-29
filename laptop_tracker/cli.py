@@ -462,10 +462,24 @@ def hourly(debug):
         logging.debug("Heatmap data preview:")
         logging.debug(heatmap_data.head())
         
-        plt.figure(figsize=(12, 6))
-        sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
-        plt.title('Hourly Usage Heatmap')
-        plt.xlabel('Date')
+        plt.figure(figsize=(16, 8))
+        ax = sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
+        
+        # Format x-axis dates to be more readable
+        date_labels = [pd.to_datetime(col).strftime('%m/%d') for col in heatmap_data.columns]
+        ax.set_xticks(range(len(date_labels)))
+        ax.set_xticklabels(date_labels, rotation=45, ha='right')
+        
+        # Format y-axis hours
+        ax.set_yticks(range(24))
+        ax.set_yticklabels([f"{h:02d}:00" for h in range(24)])
+        
+        # Add grid lines for better readability
+        ax.hlines(range(24), *ax.get_xlim(), colors='white', linewidth=0.5)
+        ax.vlines(range(len(date_labels)), *ax.get_ylim(), colors='white', linewidth=0.5)
+        
+        plt.title('Hourly Usage Heatmap (Past 30 Days)')
+        plt.xlabel('Date (MM/DD)')
         plt.ylabel('Hour of Day')
         plt.tight_layout()
         plt.show()
