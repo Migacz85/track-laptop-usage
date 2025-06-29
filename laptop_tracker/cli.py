@@ -348,35 +348,47 @@ def hourly(debug):
     log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
     daily_log_file = log_dir / "hourly-laptop.log"
     
-    # Read and parse the log file
+    # Read and parse the log file manually
     try:
-        daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-        
-        # Convert timestamp to datetime with more flexible parsing
-        daily_df['date'] = pd.to_datetime(
-            daily_df['date'],
-            format='%Y/%m/%d %H',
-            errors='coerce'
-        )
-        
-        # Handle any invalid timestamps
-        if daily_df['date'].isna().any():
-            # Try alternative format if first attempt failed
-            daily_df['date'] = pd.to_datetime(
-                daily_df['date'].fillna('').astype(str) + ':00',
-                format='%Y/%m/%d %H:%M',
-                errors='coerce'
-            )
+        data = []
+        with open(daily_log_file, 'r') as f:
+            for line in f.readlines()[1:]:  # Skip header
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.rsplit(' ', 1)
+                if len(parts) == 2:
+                    try:
+                        # Parse timestamp and usage
+                        timestamp = parts[0]
+                        usage = int(parts[1])
+                            
+                        # Handle both formats: "2025/06/29 15:00" and "2025/06/29|15"
+                        if '|' in timestamp:
+                            date_part, hour_part = timestamp.split('|')
+                            hour = int(hour_part.split(':')[0]) if ':' in hour_part else int(hour_part)
+                            date_str = date_part
+                        else:
+                            date_part, time_part = timestamp.split(' ')
+                            hour = int(time_part.split(':')[0])
+                            date_str = date_part
+                            
+                        data.append({
+                            'date': pd.to_datetime(date_str),
+                            'hour': hour,
+                            'usage': usage
+                        })
+                    except ValueError as e:
+                        logging.warning(f"Skipping malformed line: {line} - {e}")
+                        continue
             
-        if daily_df['date'].isna().any():
-            logging.warning("Some timestamps could not be parsed")
-            daily_df = daily_df[daily_df['date'].notna()]
-        
-        # Check if we have any valid data
-        if len(daily_df) == 0:
+        if not data:
             logging.warning("No valid data found in log file")
             print("No usage data available to display")
             return
+                
+        daily_df = pd.DataFrame(data)
+        daily_df['usage_hours'] = daily_df['usage'] / 3600
         
         # Debug output to show what data was found
         logging.debug(f"Found {len(daily_df)} log entries")
