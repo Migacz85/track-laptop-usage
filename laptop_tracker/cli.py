@@ -457,9 +457,15 @@ def hourly(debug):
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
         
-        # Sort columns chronologically and ensure we have 30 days
+        # Sort columns chronologically
         heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
-        if len(heatmap_data.columns) < 30:
+        
+        # Create date range based on actual data
+        if len(heatmap_data.columns) > 0:
+            start_date = min(heatmap_data.columns)
+            end_date = max(heatmap_data.columns)
+            date_range = pd.date_range(start=start_date, end=end_date)
+            
             # Add missing days with empty data
             missing_dates = [d for d in date_range if d not in heatmap_data.columns]
             for date in missing_dates:
