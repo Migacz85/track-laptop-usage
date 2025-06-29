@@ -33,12 +33,12 @@ class LaptopTracker:
             self._log_entry(0)  # Initialize with 0 usage
 
     def _get_timestamp(self):
-        """Get current timestamp based on track type"""
+        """Get current timestamp in consistent format"""
         now = datetime.now()
         if self.track_type == 'daily':
-            return now.strftime('%Y/%m/%d')
+            return now.strftime('%Y/%m/%d 00:00')
         elif self.track_type == 'hourly':
-            return now.strftime('%Y/%m/%d %H')
+            return now.strftime('%Y/%m/%d %H:00')
         elif self.track_type == 'minutes':
             return now.strftime('%Y/%m/%d %H:%M')
         else:

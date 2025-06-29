@@ -416,17 +416,12 @@ def logs(debug, daily, hour):
             daily_df = pd.read_csv(daily_log_file, sep=r'\s+', engine='python', header=0,
                                  names=['date', 'usage'])
         
-        # Convert timestamp with multiple format attempts
-        for fmt in ['%Y/%m/%d %H', '%Y/%m/%d']:
-            try:
-                daily_df['date'] = pd.to_datetime(daily_df['date'], format=fmt)
-                break
-            except ValueError:
-                continue
-        
-        # If still not parsed, try automatic parsing
-        if not pd.api.types.is_datetime64_any_dtype(daily_df['date']):
-            daily_df['date'] = pd.to_datetime(daily_df['date'], errors='coerce')
+        # Convert timestamp with consistent format
+        daily_df['date'] = pd.to_datetime(
+            daily_df['date'],
+            format='%Y/%m/%d %H:%M',
+            errors='coerce'
+        )
             
         if daily_df['date'].isna().any():
             logger.error("Could not parse timestamps - invalid format in log file")
