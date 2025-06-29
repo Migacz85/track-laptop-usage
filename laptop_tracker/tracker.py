@@ -57,14 +57,15 @@ class LaptopTracker:
                 
             # Method 2: Check console idle time (for terminal sessions)
             try:
-                idle_sec = int(subprocess.check_output([
-                    'who', '-u', 
-                    '|', 'awk', '\'{print $6}\'', 
-                    '|', 'cut', '-d:', '-f2'
-                ]).decode().strip())
-                if idle_sec > self.idle_threshold:
-                    return True
-            except (subprocess.CalledProcessError, ValueError):
+                who_output = subprocess.check_output(['who', '-u']).decode().strip()
+                if who_output:
+                    idle_str = who_output.splitlines()[0].split()[4]  # Get idle time from first session
+                    if idle_str == '.':
+                        return False  # Active if idle time is '.'
+                    idle_sec = int(idle_str.split(':')[0]) * 60 + int(idle_str.split(':')[1])
+                    if idle_sec > self.idle_threshold:
+                        return True
+            except (subprocess.CalledProcessError, ValueError, IndexError):
                 pass
                 
             # Method 3: Fallback to /proc/uptime
