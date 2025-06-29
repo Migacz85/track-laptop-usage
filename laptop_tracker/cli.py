@@ -4,6 +4,7 @@ import os
 import signal
 import subprocess
 import time
+import getpass
 from pathlib import Path
 import pandas as pd
 import seaborn as sns
@@ -104,19 +105,35 @@ def stop(debug):
 
     # Stop Python trackers
     found = False
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+    current_pid = os.getpid()  # Don't kill our own process
+    
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'username']):
         try:
+            if proc.info['pid'] == current_pid:
+                continue  # Skip our own process
+                
             cmdline = ' '.join(proc.info['cmdline'] or [])
-            if ('python' in proc.info['name'].lower() or 
-                'python3' in proc.info['name'].lower()) and \
-               ('laptop_tracker' in cmdline or 
-                'track-laptop-usage.sh' in cmdline or
-                'laptop-tracker' in cmdline):
+            username = proc.info['username']
+            
+            # Match both the Python process and our specific command
+            if (('python' in proc.info['name'].lower() or 
+                 'python3' in proc.info['name'].lower()) and 
+                ('laptop_tracker' in cmdline or 
+                 'laptop-tracker' in cmdline or
+                 'track-laptop-usage.sh' in cmdline) and
+                username == os.getlogin()):  # Only kill processes owned by current user
+                
                 logger.debug(f"Stopping tracker process {proc.info['pid']} - {cmdline}")
                 proc.terminate()
-                proc.wait(timeout=5)  # Wait for process to terminate
-                found = True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, psutil.TimeoutExpired):
+                try:
+                    proc.wait(timeout=5)  # Wait for process to terminate
+                    found = True
+                except psutil.TimeoutExpired:
+                    logger.warning(f"Process {proc.info['pid']} did not terminate, killing it")
+                    proc.kill()
+                    found = True
+                    
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
     
     if not found:
@@ -166,13 +183,37 @@ def status():
     
     Displays the status of any active tracker processes.
     """
+    running = False
+    current_user = os.getlogin()
+    
+    # Check Python trackers
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'username']):
+        try:
+            cmdline = ' '.join(proc.info['cmdline'] or [])
+            username = proc.info['username']
+            
+            if (('python' in proc.info['name'].lower() or 
+                 'python3' in proc.info['name'].lower()) and 
+                ('laptop_tracker' in cmdline or 
+                 'laptop-tracker' in cmdline) and
+                username == current_user):
+                
+                print(f"Python tracker running (PID: {proc.info['pid']})")
+                running = True
+                
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    
+    # Check bash trackers
     try:
         output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
         if output:
-            print("Tracker is running (PID(s):", output.replace('\n', ', '), ")")
-        else:
-            print("Tracker is not running")
+            print(f"Bash tracker running (PID(s): {output.replace('\n', ', ')})")
+            running = True
     except subprocess.CalledProcessError:
+        pass
+    
+    if not running:
         print("Tracker is not running")
 
 @cli.command()
