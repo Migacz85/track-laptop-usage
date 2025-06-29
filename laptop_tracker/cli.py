@@ -67,8 +67,8 @@ def start(debug, foreground):
             daily_process.start()
             hourly_process.start()
             
-            if not daemon:
-                # Keep the main process running if not daemon
+            if not foreground:
+                # Keep the main process running if not foreground
                 while True:
                     time.sleep(1)
             
