@@ -426,12 +426,22 @@ def hourly(debug):
         # Ensure daily_df['day'] is date type for merge
         daily_df['day'] = pd.to_datetime(daily_df['day']).dt.date
         
-        # Merge with actual data, filling missing hours with 0
+        # Convert daily_df['day'] to date type for proper merging
+        daily_df['day'] = pd.to_datetime(daily_df['day']).dt.date
+        
+        # Merge with actual data, preserving all hours
         merged_df = complete_grid.merge(
             daily_df[['day', 'hour', 'usage_hours']],
             on=['day', 'hour'],
             how='left'
-        ).fillna(0)
+        )
+        
+        # Fill missing values with 0 but keep original usage values
+        merged_df['usage_hours'] = merged_df['usage_hours'].fillna(0)
+        
+        # Debug output to verify merged data
+        logging.debug("Merged data preview:")
+        logging.debug(merged_df.head())
         
         # Ensure we have exactly 30 days worth of data
         merged_df = merged_df[merged_df['day'].isin(date_range)]
@@ -462,10 +472,14 @@ def hourly(debug):
         logging.debug("Heatmap data preview:")
         logging.debug(heatmap_data.head())
         
-        # Normalize data for better color contrast
-        max_usage = heatmap_data.max().max()
-        if max_usage > 0:
-            heatmap_data = heatmap_data / max_usage
+        # Apply logarithmic scaling for better visibility of small values
+        heatmap_data = heatmap_data + 0.01  # Add small value to avoid log(0)
+        heatmap_data = np.log10(heatmap_data)
+        
+        # Normalize to 0-1 range
+        max_val = heatmap_data.max().max()
+        if max_val > 0:
+            heatmap_data = heatmap_data / max_val
         
         # Debug output to verify heatmap data
         logging.debug("Heatmap data preview:")
@@ -475,12 +489,13 @@ def hourly(debug):
         ax = sns.heatmap(
             heatmap_data,
             cmap='YlGnBu',
-            cbar_kws={'label': 'Usage (normalized)'},
+            cbar_kws={'label': 'Usage (log scale)'},
             vmin=0,
             vmax=1,
             square=True,
             linewidths=0.3,
-            linecolor='white'
+            linecolor='white',
+            annot=False
         )
         
         # Format x-axis dates to be more readable
