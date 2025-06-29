@@ -62,6 +62,8 @@ def is_bash_tracker_running():
         return False
     
     def run_trackers(foreground):
+        """Run all tracking processes with status logging"""
+        logging.debug("Initializing tracking processes...")
         try:
             import multiprocessing
             
