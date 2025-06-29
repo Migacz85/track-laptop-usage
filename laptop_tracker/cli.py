@@ -88,9 +88,8 @@ def daily():
     daily_log_file = log_dir / "daily-laptop.log"
     
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    # Handle both old pipe format and new space format
-    daily_df['date'] = daily_df['date'].str.replace('|', ' ', regex=False)
-    daily_df['date'] = pd.to_datetime(daily_df['date'], format='%Y/%m/%d %H:%M')
+    # Handle multiple timestamp formats
+    daily_df['date'] = pd.to_datetime(daily_df['date'], format='mixed')
     daily_df['usage_hours'] = daily_df['usage'] / 3600
 
     plt.figure(figsize=(12, 6))
