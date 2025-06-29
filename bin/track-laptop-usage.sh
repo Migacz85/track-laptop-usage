@@ -51,10 +51,8 @@ update_log() {
     local last_usage=${last_line##* }
 
     if [[ "$last_date" == "$timestamp" ]]; then
-        # Update existing entry
-        head -n -1 "$LOG_PATH" > "$LOG_PATH.tmp"
-        mv "$LOG_PATH.tmp" "$LOG_PATH"
-        echo "$timestamp $((last_usage + SLEEP_TIME))" >> "$LOG_PATH"
+        # Update existing entry by modifying the last line
+        sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
     else
         # Add new entry
         echo "$timestamp $SLEEP_TIME" >> "$LOG_PATH"
