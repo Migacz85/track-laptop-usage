@@ -27,10 +27,10 @@ function today {
   today=$( date +'%Y/%m/%d' )
   fi
   if [[ "$track_type" == "hourly" ]]; then
-  today=$( date +'%Y/%m/%d|%H' )
+  today=$( date +'%Y/%m/%d %H' )
   fi
   if [[ "$track_type" == "minutes" ]]; then
-  today=$( date +'%Y/%m/%d|%H:%M' )
+  today=$( date +'%Y/%m/%d %H:%M' )
   fi
 }
 today
@@ -109,8 +109,12 @@ function UpdateTimeInFile {
       # today=$( date +'%Y/%m/%d' )
       today
 
-        ## Check if the last date in a file is same as today date
-        if [[ $last_date == $today ]]; then
+        # Standardize timestamp format for comparison
+        last_date_compare=$(echo "$last_date" | tr '|' ' ')
+        today_compare=$(echo "$today" | tr '|' ' ')
+        
+        # Check if the last date in a file is same as today date
+        if [[ "$last_date_compare" == "$today_compare" ]]; then
           # Count how long user spent on task
           time_diff=$last_saved_value+$sleep_time
           # Update time for today in file
