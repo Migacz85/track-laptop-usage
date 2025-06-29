@@ -93,3 +93,80 @@ If you encounter problems you can run directly:
 # Summary 
 
 Overall this is small nice tool to play with :) 
+# Laptop Usage Tracker
+
+A Python-based tool to track and analyze your laptop usage patterns.
+
+## Features
+
+- Tracks active usage time (excluding idle periods)
+- Provides daily and hourly usage statistics
+- Generates visual heatmaps of usage patterns
+- Lightweight and efficient background tracking
+- Cross-platform support (Linux, macOS, Windows)
+
+## Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Migacz85/track-laptop-usage.git
+   cd track-laptop-usage
+   ```
+
+2. Install dependencies:
+   ```bash
+   ./install.sh
+   ```
+
+3. Activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
+
+## Usage
+
+Start tracking:
+```bash
+laptop-tracker start
+```
+
+View daily usage chart:
+```bash
+laptop-tracker daily
+```
+
+View hourly usage heatmap:
+```bash
+laptop-tracker hourly
+```
+
+Check tracker status:
+```bash
+laptop-tracker status
+```
+
+Stop tracking:
+```bash
+laptop-tracker stop
+```
+
+## Configuration
+
+The tracker can be configured by editing the following settings in `laptop_tracker/tracker.py`:
+
+- `idle_threshold`: Seconds of inactivity before considering user idle (default: 120)
+- `update_interval`: How often to check activity (default: 60 seconds)
+
+## Requirements
+
+- Python 3.6+
+- xprintidle (for Linux idle detection)
+- matplotlib, pandas, seaborn, psutil
+
+## Contributing
+
+Contributions are welcome! Please open an issue or pull request for any bug fixes or feature requests.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
