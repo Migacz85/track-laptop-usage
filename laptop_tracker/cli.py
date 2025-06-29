@@ -359,22 +359,31 @@ def hourly(debug):
                 parts = line.rsplit(' ', 1)
                 if len(parts) == 2:
                     try:
-                        # Parse timestamp and usage
                         timestamp = parts[0]
                         usage = int(parts[1])
                             
-                        # Handle both formats: "2025/06/29 15:00" and "2025/06/29|15"
+                        # Parse timestamp and extract components
                         if '|' in timestamp:
                             date_part, hour_part = timestamp.split('|')
                             hour = int(hour_part.split(':')[0]) if ':' in hour_part else int(hour_part)
                             date_str = date_part
                         else:
-                            date_part, time_part = timestamp.split(' ')
-                            hour = int(time_part.split(':')[0])
-                            date_str = date_part
+                            if ' ' in timestamp and ':' in timestamp:
+                                date_part, time_part = timestamp.split(' ')
+                                hour = int(time_part.split(':')[0])
+                                date_str = date_part
+                            else:
+                                # Handle case where timestamp has no hour info
+                                date_str = timestamp
+                                hour = 0
+                            
+                        # Create datetime object with correct hour
+                        date_obj = pd.to_datetime(date_str)
+                        if ' ' in timestamp or '|' in timestamp:
+                            date_obj = date_obj.replace(hour=hour)
                             
                         data.append({
-                            'date': pd.to_datetime(date_str),
+                            'date': date_obj,
                             'hour': hour,
                             'usage': usage
                         })
@@ -389,6 +398,10 @@ def hourly(debug):
                 
         daily_df = pd.DataFrame(data)
         daily_df['usage_hours'] = daily_df['usage'] / 3600
+            
+        # Debug output to verify hour values
+        logging.debug("Sample parsed data:")
+        logging.debug(daily_df.head())
         
         # Debug output to show what data was found
         logging.debug(f"Found {len(daily_df)} log entries")
