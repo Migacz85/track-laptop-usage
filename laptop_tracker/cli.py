@@ -460,11 +460,12 @@ def hourly(debug):
             # Re-sort columns
             heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
         
-        # Print raw data for debugging
-        print("\nRaw DataFrame before heatmap creation:")
-        print(daily_df[['date', 'hour', 'usage_hours']].head(20))
-        print("\nHeatmap data (pivot table):")
-        print(heatmap_data.head(20))
+        # Print essential debug info
+        print("\nEssential Debug Info:")
+        print(f"Total entries: {len(daily_df)}")
+        print(f"Date range: {daily_df['date'].min()} to {daily_df['date'].max()}")
+        print(f"Total usage hours: {daily_df['usage_hours'].sum():.1f}")
+        print(f"Heatmap dimensions: {heatmap_data.shape}")
         
         # Apply linear scaling with adjusted vmax
         max_val = heatmap_data.max().max()
