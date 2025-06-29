@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import psutil
 from .tracker import LaptopTracker
 
-# Suppress matplotlib 3D projection warning
-warnings.filterwarnings("ignore", category=UserWarning, message="Unable to import Axes3D")
+# Suppress matplotlib warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
 
 # Configure logging
 logging.basicConfig(
