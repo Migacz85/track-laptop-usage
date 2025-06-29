@@ -122,5 +122,32 @@ def hourly():
     plt.tight_layout()
     plt.show()
 
+@cli.command()
+@click.option('--date', default=None, help='Date in YYYY/MM/DD format')
+@click.option('--hour', default=None, type=int, help='Hour (0-23)')
+def logs(date, hour):
+    """Show raw logs for specific date and hour"""
+    log_dir = Path(__file__).parent.parent / "log"
+    daily_log_file = log_dir / "daily-laptop.log"
+    
+    if not daily_log_file.exists():
+        print("No log file found")
+        return
+    
+    with open(daily_log_file, 'r') as f:
+        print(f"Logs for {date or 'all dates'} {f'hour {hour:02d}' if hour is not None else ''}")
+        print("-" * 40)
+        
+        # Skip header
+        next(f)
+        
+        for line in f:
+            log_date, usage = line.strip().split()
+            log_hour = int(log_date.split('|')[1]) if '|' in log_date else 0
+            
+            if (date is None or date in log_date) and \
+               (hour is None or hour == log_hour):
+                print(f"{log_date}: {int(usage)//3600}h {int(usage)%3600//60}m")
+
 if __name__ == "__main__":
     cli()
