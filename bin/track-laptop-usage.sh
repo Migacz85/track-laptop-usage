@@ -21,6 +21,9 @@ get_timestamp() {
     esac
 }
 
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
+
 # Check if user is idle
 is_idle() {
     if ! command -v xprintidle &> /dev/null; then
