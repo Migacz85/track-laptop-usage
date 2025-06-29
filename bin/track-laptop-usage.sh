@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
+# Configuration
 TRACK_TYPE=${1:-daily}
-LOG_FILE=${2:-daily-laptop.log}  # Default to daily log file
+LOG_FILE=${2:-daily-laptop.log}
 TRACK_TILL=120  # seconds of idle time
 SLEEP_TIME=60   # seconds between checks
 LOG_DIR="$(dirname "$0")/../log"
@@ -17,26 +18,14 @@ get_timestamp() {
         daily)   date +'%Y/%m/%d' ;;
         hourly)  date +'%Y/%m/%d %H' ;;
         minutes) date +'%Y/%m/%d %H:%M' ;;
-        *)       echo "Invalid track type: $TRACK_TYPE"; exit 1 ;;
+        *)       echo "Invalid track type: $TRACK_TYPE" >&2; exit 1 ;;
     esac
 }
-
-# Get simplified timestamp for comparison
-get_compare_timestamp() {
-    case "$TRACK_TYPE" in
-        daily)   date +'%Y/%m/%d' ;;
-        hourly)  date +'%Y/%m/%d %H' ;;
-        minutes) date +'%Y/%m/%d %H:%M' ;;
-    esac
-}
-
-# Ensure log directory exists
-mkdir -p "$LOG_DIR"
 
 # Check if user is idle
 is_idle() {
     if ! command -v xprintidle &> /dev/null; then
-        echo "xprintidle not found! Please install it with: sudo apt-get install xprintidle"
+        echo "xprintidle not found! Please install it with: sudo apt-get install xprintidle" >&2
         exit 1
     fi
     idle_ms=$(xprintidle)
@@ -55,47 +44,52 @@ init_log() {
 # Update log with current usage
 update_log() {
     local timestamp=$(get_timestamp)
-    
-    # Use a temporary file for atomic updates
     local temp_file="${LOG_PATH}.tmp"
     
-    # Read the entire log file
-    local lines=()
+    # Read and process the log file
+    local last_line=""
+    local last_date=""
+    local last_usage=0
+    local updated=false
+    
+    # Process the log file line by line
     while IFS= read -r line; do
-        lines+=("$line")
+        # Skip header line
+        if [[ "$line" == "date usage" ]]; then
+            echo "$line" > "$temp_file"
+            continue
+        fi
+        
+        # Parse the line
+        current_date=${line%% *}
+        current_usage=${line##* }
+        
+        # Check if this is the current hour/day
+        if [[ "$current_date" == "$timestamp" ]]; then
+            # Update the usage for this period
+            last_line="$timestamp $((current_usage + SLEEP_TIME))"
+            last_date="$current_date"
+            last_usage=$((current_usage + SLEEP_TIME))
+            updated=true
+        else
+            # Write previous lines as-is
+            echo "$line" >> "$temp_file"
+        fi
     done < "$LOG_PATH"
     
-    # Get the last line
-    local last_line="${lines[-1]}"
-    local last_date=${last_line%% *}
-    local last_usage=${last_line##* }
-    
-    # For hourly tracking, compare just the date and hour portion
-    if [[ "$TRACK_TYPE" == "hourly" ]]; then
-        last_compare_date=$(echo "$last_date" | cut -d' ' -f1-2)
-        current_compare_date=$(echo "$timestamp" | cut -d' ' -f1-2)
-    else
-        last_compare_date=$last_date
-        current_compare_date=$timestamp
+    # If we didn't find an entry for this period, add a new one
+    if ! $updated; then
+        last_line="$timestamp $SLEEP_TIME"
     fi
     
-    # Update or add entry
-    if [[ "$last_compare_date" == "$current_compare_date" ]]; then
-        # Update the last line
-        lines[-1]="$timestamp $((last_usage + SLEEP_TIME))"
-    else
-        # Add new entry
-        lines+=("$timestamp $SLEEP_TIME")
-    fi
+    # Add the last (updated or new) entry
+    echo "$last_line" >> "$temp_file"
     
-    # Write to temporary file
-    printf "%s\n" "${lines[@]}" > "$temp_file"
-    
-    # Atomically move the temporary file to the log file
+    # Atomically replace the log file
     mv -f "$temp_file" "$LOG_PATH"
 }
 
-# Main loop
+# Main execution
 init_log
 while true; do
     sleep "$SLEEP_TIME"
