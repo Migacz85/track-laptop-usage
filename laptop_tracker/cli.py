@@ -48,11 +48,18 @@ def start():
 @cli.command()
 def stop():
     """Stop tracking laptop usage"""
-    pid = get_tracker_pid()
-    if pid:
-        os.kill(pid, signal.SIGTERM)
-        print("Tracker stopped")
-    else:
+    try:
+        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
+        if output:
+            for pid in output.split('\n'):
+                try:
+                    os.kill(int(pid), signal.SIGTERM)
+                except ProcessLookupError:
+                    continue
+            print("Tracker stopped (killed PIDs:", output.replace('\n', ', '), ")")
+        else:
+            print("No tracker process found")
+    except subprocess.CalledProcessError:
         print("No tracker process found")
 
 @cli.command()
@@ -65,9 +72,13 @@ def restart():
 @cli.command()
 def status():
     """Check if tracker is running"""
-    if get_tracker_pid():
-        print("Tracker is running")
-    else:
+    try:
+        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
+        if output:
+            print("Tracker is running (PID(s):", output.replace('\n', ', '), ")")
+        else:
+            print("Tracker is not running")
+    except subprocess.CalledProcessError:
         print("Tracker is not running")
 
 @cli.command()
