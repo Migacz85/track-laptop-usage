@@ -300,6 +300,7 @@ def daily(debug):
     
     logging.debug("Generating daily usage chart")
     log_dir = Path(__file__).parent.parent / "log"
+    log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
     daily_log_file = log_dir / "hourly-laptop.log"
     
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
@@ -330,6 +331,7 @@ def hourly(debug):
     
     logging.debug("Generating hourly usage heatmap")
     log_dir = Path(__file__).parent.parent / "log"
+    log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
     daily_log_file = log_dir / "daily-laptop.log"
     
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)

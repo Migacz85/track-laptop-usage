@@ -6,7 +6,7 @@ TRACK_TYPE=${1:-daily}
 LOG_FILE=${2:-daily-laptop.log}
 TRACK_TILL=120  # seconds of idle time
 SLEEP_TIME=60   # seconds between checks
-LOG_DIR="$(dirname "$0")/../log"
+LOG_DIR="$(dirname "$0")/../../log"
 LOG_PATH="$LOG_DIR/$LOG_FILE"
 
 # Create log directory if needed
