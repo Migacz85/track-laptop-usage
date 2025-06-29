@@ -59,7 +59,7 @@ def is_bash_tracker_running():
     except subprocess.CalledProcessError:
         return False
     
-    def run_trackers():
+    def run_trackers(foreground):
         try:
             import multiprocessing
             
@@ -97,9 +97,9 @@ def is_bash_tracker_running():
             # Parent process exits
             return
         # Child process continues
-        run_trackers()
+        run_trackers(foreground=True)  # Run in foreground after daemonizing
     else:
-        run_trackers()
+        run_trackers(foreground=True)
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
