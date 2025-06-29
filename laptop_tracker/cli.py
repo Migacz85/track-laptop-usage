@@ -42,9 +42,18 @@ def start(debug, foreground):
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
     
-    if LaptopTracker.is_running():
+    # Check for both Python and bash trackers
+    if LaptopTracker.is_running() or is_bash_tracker_running():
         logging.warning("Tracker is already running")
         return
+
+def is_bash_tracker_running():
+    """Check if bash tracker process is running"""
+    try:
+        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
+        return bool(output)
+    except subprocess.CalledProcessError:
+        return False
     
     def run_trackers():
         try:

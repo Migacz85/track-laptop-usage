@@ -135,10 +135,17 @@ class LaptopTracker:
     @classmethod
     def is_running(cls):
         """Check if tracker is already running"""
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        current_pid = os.getpid()
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'username']):
             try:
-                if 'python' in proc.info['name'].lower() and \
-                   'laptop_tracker' in ' '.join(proc.info['cmdline'] or []):
+                if proc.info['pid'] == current_pid:
+                    continue  # Skip our own process
+                    
+                if ('python' in proc.info['name'].lower() or 
+                    'python3' in proc.info['name'].lower()) and \
+                   ('laptop_tracker' in ' '.join(proc.info['cmdline'] or []) or
+                    'laptop-tracker' in ' '.join(proc.info['cmdline'] or [])) and \
+                   proc.info['username'] == os.getlogin():
                     return True
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
