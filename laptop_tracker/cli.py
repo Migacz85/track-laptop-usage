@@ -462,8 +462,26 @@ def hourly(debug):
         logging.debug("Heatmap data preview:")
         logging.debug(heatmap_data.head())
         
+        # Normalize data for better color contrast
+        max_usage = heatmap_data.max().max()
+        if max_usage > 0:
+            heatmap_data = heatmap_data / max_usage
+        
+        # Debug output to verify heatmap data
+        logging.debug("Heatmap data preview:")
+        logging.debug(heatmap_data.head())
+        
         plt.figure(figsize=(16, 8))
-        ax = sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
+        ax = sns.heatmap(
+            heatmap_data,
+            cmap='YlGnBu',
+            cbar_kws={'label': 'Usage (normalized)'},
+            vmin=0,
+            vmax=1,
+            square=True,
+            linewidths=0.3,
+            linecolor='white'
+        )
         
         # Format x-axis dates to be more readable
         date_labels = [pd.to_datetime(col).strftime('%m/%d') for col in heatmap_data.columns]
