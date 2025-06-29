@@ -140,7 +140,9 @@ def logs(daily, hour):
     
     # Read and parse the log file
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    daily_df['date'] = pd.to_datetime(daily_df['date'], format='%Y/%m/%d')
+    # Handle both old pipe format and new space format
+    daily_df['date'] = daily_df['date'].str.replace('|', ' ', regex=False)
+    daily_df['date'] = pd.to_datetime(daily_df['date'], format='%Y/%m/%d %H:%M')
     daily_df['usage_hours'] = daily_df['usage'] / 3600
     
     # Default to daily if no option specified
