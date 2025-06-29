@@ -1,3 +1,4 @@
+import warnings
 import click
 import logging
 import os
@@ -11,6 +12,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import psutil
 from .tracker import LaptopTracker
+
+# Suppress matplotlib 3D projection warning
+warnings.filterwarnings("ignore", category=UserWarning, message="Unable to import Axes3D")
 
 # Configure logging
 logging.basicConfig(
