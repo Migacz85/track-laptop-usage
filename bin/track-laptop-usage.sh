@@ -23,7 +23,7 @@ get_timestamp() {
 
 # Check if user is idle
 is_idle() {
-    idle_ms=$(xprintidle)
+    idle_ms=$(python3 -c "import pyxprintidle; print(pyxprintidle.idle_time())")
     idle_sec=$((idle_ms / 1000))
     [[ $idle_sec -gt $TRACK_TILL ]]
 }
