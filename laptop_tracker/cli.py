@@ -159,14 +159,14 @@ def logs(daily, hour):
     if hour:
         # Show hourly details
         daily_df['hour'] = daily_df['date'].dt.hour
+        daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d %H:00')
         
         print("Hourly Usage Details")
         print("-" * 40)
         for _, row in daily_df.iterrows():
-            date_str = row['date'].strftime('%Y/%m/%d %H:00')
             hours = int(row['usage_hours'])
             mins = int((row['usage_hours'] - hours) * 60)
-            print(f"{date_str}: {hours}h {mins}m")
+            print(f"{row['date_str']}: {hours}h {mins}m")
 
 if __name__ == "__main__":
     cli()
