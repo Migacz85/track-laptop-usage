@@ -539,6 +539,7 @@ def logs(debug, daily, hour):
             
             # Get the raw timestamp string from the log file
             raw_timestamp = str(row['date'])
+            logging.debug(f"Raw timestamp: {raw_timestamp}")
             
             # Parse the hour from the raw timestamp
             if ' ' in raw_timestamp and ':' in raw_timestamp:
@@ -546,15 +547,18 @@ def logs(debug, daily, hour):
                 date_part, time_part = raw_timestamp.split(' ')
                 hour = int(time_part.split(':')[0])
                 date_str = date_part
+                logging.debug(f"Parsed as full timestamp: date={date_part} hour={hour}")
             elif ' ' in raw_timestamp:
                 # Format: "2025/06/29 15"
                 date_part, hour_part = raw_timestamp.split(' ')
                 hour = int(hour_part)
                 date_str = date_part
+                logging.debug(f"Parsed as date+hour: date={date_part} hour={hour}")
             else:
                 # Format: "2025/06/29"
                 hour = 0
                 date_str = raw_timestamp
+                logging.debug(f"Parsed as date only: date={date_str} hour=0")
             
             print(f"{date_str} {hour:02d}:00 - {time_str}")
 
