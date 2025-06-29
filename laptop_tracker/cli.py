@@ -364,8 +364,8 @@ def logs(debug, daily, hour):
     if hour:
         # Show hourly details
         daily_df['hour'] = daily_df['date'].dt.hour
-        # Format date string based on whether we have hourly data
-        if self.track_type == 'hourly':
+        # Format date string based on whether timestamps contain hour info
+        if any(' ' in str(date) for date in daily_df['date']):
             daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d %H:00')
         else:
             daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d') + ' 00:00'
