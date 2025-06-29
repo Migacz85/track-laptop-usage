@@ -414,17 +414,24 @@ def hourly(debug):
         daily_df['hour'] = daily_df['date'].dt.hour
         daily_df['day'] = daily_df['date'].dt.date
         
-        # Create complete grid of all hours and days
+        # Create complete grid for past 30 days
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=29)
+        date_range = pd.date_range(start_date, end_date, freq='D')
+        
         all_hours = pd.DataFrame({'hour': range(24)})
-        all_days = pd.DataFrame({'day': daily_df['day'].unique()})
+        all_days = pd.DataFrame({'day': date_range})
         complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
         
-        # Merge with actual data
+        # Merge with actual data, filling missing hours with 0
         merged_df = complete_grid.merge(
             daily_df[['day', 'hour', 'usage_hours']],
             on=['day', 'hour'],
             how='left'
         ).fillna(0)
+        
+        # Ensure we have exactly 30 days worth of data
+        merged_df = merged_df[merged_df['day'].isin(date_range)]
         
         # Create heatmap data with proper hour mapping
         heatmap_data = merged_df.pivot_table(
@@ -438,8 +445,15 @@ def hourly(debug):
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
         
-        # Sort columns chronologically
+        # Sort columns chronologically and ensure we have 30 days
         heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
+        if len(heatmap_data.columns) < 30:
+            # Add missing days with empty data
+            missing_dates = [d for d in date_range if d not in heatmap_data.columns]
+            for date in missing_dates:
+                heatmap_data[date] = 0
+            # Re-sort columns
+            heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
         
         # Debug output to verify heatmap data
         logging.debug("Heatmap data preview:")
