@@ -98,16 +98,24 @@ def stop(debug):
     # Set log level
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    
+    # Ensure we have a logger instance
+    logger = logging.getLogger(__name__)
 
     # Stop Python trackers
+    found = False
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
             if 'python' in proc.info['name'].lower() and \
                'laptop_tracker' in ' '.join(proc.info['cmdline'] or []):
-                logging.debug(f"Stopping tracker process {proc.info['pid']}")
+                logger.debug(f"Stopping tracker process {proc.info['pid']}")
                 proc.terminate()
+                found = True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
+    
+    if not found:
+        logger.debug("No Python tracker processes found")
 
     # Stop bash trackers (legacy)
     try:
@@ -115,15 +123,15 @@ def stop(debug):
         if output:
             for pid in output.split('\n'):
                 try:
-                    logging.debug(f"Stopping bash tracker process {pid}")
+                    logger.debug(f"Stopping bash tracker process {pid}")
                     os.kill(int(pid), signal.SIGTERM)
                 except ProcessLookupError:
                     continue
-            logging.info("Tracker stopped (killed PIDs: %s)", output.replace('\n', ', '))
+            logger.info("Tracker stopped (killed PIDs: %s)", output.replace('\n', ', '))
         else:
-            logging.info("No tracker process found")
+            logger.info("No bash tracker processes found")
     except subprocess.CalledProcessError:
-        logging.info("No tracker process found")
+        logger.info("No bash tracker processes found")
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
