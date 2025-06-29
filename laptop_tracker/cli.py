@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 import psutil
 from .tracker import LaptopTracker
 
-# Suppress matplotlib warnings
-warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
+# Suppress matplotlib warnings more aggressively
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 # Configure logging
 logging.basicConfig(
