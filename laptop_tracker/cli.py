@@ -464,7 +464,7 @@ def logs(debug, daily, hour):
         # Read log file with more robust parsing
         with open(daily_log_file, 'r') as f:
             lines = f.readlines()
-        
+            
         # Skip header and process lines manually
         data = []
         for line in lines[1:]:
@@ -476,20 +476,22 @@ def logs(debug, daily, hour):
                 try:
                     # Convert usage to integer
                     parts[1] = int(parts[1])
-                    data.append(parts)
+                    # Store both raw and parsed timestamps
+                    parsed_date = pd.to_datetime(
+                        parts[0],
+                        format='%Y/%m/%d %H:%M',
+                        errors='coerce'
+                    )
+                    if pd.isna(parsed_date):
+                        logging.warning(f"Skipping malformed timestamp: {parts[0]}")
+                        continue
+                    data.append([parts[0], parsed_date, parts[1]])
                 except ValueError:
                     logging.warning(f"Skipping malformed line: {line}")
                     continue
-        
-        daily_df = pd.DataFrame(data, columns=['date', 'usage'])
+            
+        daily_df = pd.DataFrame(data, columns=['raw_date', 'date', 'usage'])
         daily_df['usage'] = pd.to_numeric(daily_df['usage'], errors='coerce')
-        
-        # Convert timestamp with consistent format
-        daily_df['date'] = pd.to_datetime(
-            daily_df['date'],
-            format='%Y/%m/%d %H:%M',
-            errors='coerce'
-        )
             
         if daily_df['date'].isna().any():
             logger.error("Could not parse timestamps - invalid format in log file")
@@ -537,8 +539,8 @@ def logs(debug, daily, hour):
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
             
-            # Get the raw timestamp string from the log file
-            raw_timestamp = str(row['date'])
+            # Use the raw timestamp directly
+            raw_timestamp = row['raw_date']
             logging.debug(f"Raw timestamp: {raw_timestamp}")
             
             # Parse the hour from the raw timestamp
