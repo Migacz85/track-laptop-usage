@@ -413,7 +413,7 @@ def logs(debug, daily, hour):
                                  names=['date', 'usage'], skipinitialspace=True)
         except:
             # Fall back to any whitespace separator
-            daily_df = pd.read_csv(daily_log_file, sep='\s+', engine='python', header=0,
+            daily_df = pd.read_csv(daily_log_file, sep=r'\s+', engine='python', header=0,
                                  names=['date', 'usage'])
         
         # Convert timestamp with multiple format attempts
