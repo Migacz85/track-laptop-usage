@@ -110,11 +110,13 @@ def stop(debug):
             if ('python' in proc.info['name'].lower() or 
                 'python3' in proc.info['name'].lower()) and \
                ('laptop_tracker' in cmdline or 
-                'track-laptop-usage.sh' in cmdline):
+                'track-laptop-usage.sh' in cmdline or
+                'laptop-tracker' in cmdline):
                 logger.debug(f"Stopping tracker process {proc.info['pid']} - {cmdline}")
                 proc.terminate()
+                proc.wait(timeout=5)  # Wait for process to terminate
                 found = True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, psutil.TimeoutExpired):
             continue
     
     if not found:
