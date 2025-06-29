@@ -108,12 +108,9 @@ def hourly():
     daily_log_file = log_dir / "daily-laptop.log"
     
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    # Handle mixed timestamp formats (daily and hourly)
-    daily_df['date'] = pd.to_datetime(
-        daily_df['date'], 
-        format='mixed',
-        dayfirst=False
-    )
+    # Handle both old pipe format and new space format
+    daily_df['date'] = daily_df['date'].str.replace('|', ' ', regex=False)
+    daily_df['date'] = pd.to_datetime(daily_df['date'], format='%Y/%m/%d %H:%M')
     daily_df['usage_hours'] = daily_df['usage'] / 3600
     daily_df['hour'] = daily_df['date'].dt.hour
     daily_df['day'] = daily_df['date'].dt.date
