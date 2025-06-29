@@ -126,10 +126,24 @@ def hourly():
     daily_df['hour'] = daily_df['date'].dt.hour
     daily_df['day'] = daily_df['date'].dt.date
     
-    heatmap_data = daily_df.pivot_table(index='hour', columns='day', values='usage_hours', aggfunc='sum')
+    # Ensure we have data for all hours
+    daily_df['hour'] = daily_df['date'].dt.hour
+    daily_df['day'] = daily_df['date'].dt.date
+    
+    # Create a complete grid of hours and days
+    all_hours = pd.DataFrame({'hour': range(24)})
+    all_days = pd.DataFrame({'day': daily_df['day'].unique()})
+    complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
+    
+    # Merge with actual data
+    merged_df = complete_grid.merge(daily_df, on=['day', 'hour'], how='left')
+    merged_df['usage_hours'] = merged_df['usage_hours'].fillna(0)
+    
+    # Create heatmap data
+    heatmap_data = merged_df.pivot_table(index='hour', columns='day', values='usage_hours', aggfunc='sum')
     
     plt.figure(figsize=(12, 6))
-    sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'})
+    sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
     plt.title('Hourly Usage Heatmap')
     plt.xlabel('Date')
     plt.ylabel('Hour of Day')
