@@ -15,13 +15,13 @@ mkdir -p "$LOG_DIR"
 get_timestamp() {
     case "$TRACK_TYPE" in
         daily)   date +'%Y/%m/%d' ;;
-        hourly)  date +'%Y/%m/%d %H:00' ;;
+        hourly)  date +'%Y/%m/%d %H' ;;
         minutes) date +'%Y/%m/%d %H:%M' ;;
         *)       echo "Invalid track type: $TRACK_TYPE"; exit 1 ;;
     esac
 }
 
-# Get simplified timestamp for comparison (just date and hour)
+# Get simplified timestamp for comparison
 get_compare_timestamp() {
     case "$TRACK_TYPE" in
         daily)   date +'%Y/%m/%d' ;;
@@ -65,8 +65,8 @@ update_log() {
         # Update existing entry by modifying the last line
         sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
     else
-        # Add new entry
-        echo "$timestamp $SLEEP_TIME" >> "$LOG_PATH"
+        # Add new entry with clean format
+        printf "%-15s %d\n" "$timestamp" "$SLEEP_TIME" >> "$LOG_PATH"
     fi
 }
 
