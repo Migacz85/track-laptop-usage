@@ -90,16 +90,8 @@ def is_bash_tracker_running():
             logging.error(f"Error starting tracker: {e}")
             raise click.Abort()
 
-    if not foreground:
-        # Daemonize the process
-        pid = os.fork()
-        if pid > 0:
-            # Parent process exits
-            return
-        # Child process continues
-        run_trackers(foreground=True)  # Run in foreground after daemonizing
-    else:
-        run_trackers(foreground=True)
+    # Always run in foreground (removed daemonization)
+    run_trackers()
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
