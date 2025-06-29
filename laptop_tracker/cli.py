@@ -390,28 +390,33 @@ def logs(debug, daily, hour):
         print("No log file found")
         return
     
-    # Read and parse the log file
-    daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    
-    # Handle mixed timestamp formats (daily and hourly)
+    # Read and parse the log file with more robust handling
     try:
-        # First try parsing as hourly format
+        daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0, 
+                             names=['date', 'usage'], skipinitialspace=True)
+        
+        # Convert timestamp to datetime with flexible parsing
         daily_df['date'] = pd.to_datetime(
-            daily_df['date'], 
-            format='%Y/%m/%d %H',
-            dayfirst=False
+            daily_df['date'],
+            format='%Y/%m/%d %H',  # Try hourly format first
+            errors='coerce'  # Don't fail on invalid formats
         )
-    except ValueError:
-        try:
-            # Fall back to daily format
+        
+        # Fill any invalid dates with daily format
+        if daily_df['date'].isna().any():
             daily_df['date'] = pd.to_datetime(
-                daily_df['date'], 
-                format='%Y/%m/%d',
-                dayfirst=False
+                daily_df['date'].fillna('').astype(str) + ' 00',  # Add default hour
+                format='%Y/%m/%d %H',
+                errors='coerce'
             )
-        except ValueError:
-            logger.error("Could not parse log file timestamps")
+            
+        if daily_df['date'].isna().any():
+            logger.error("Could not parse some timestamps in log file")
             return
+            
+    except Exception as e:
+        logger.error(f"Error reading log file: {e}")
+        return
     daily_df['usage_hours'] = daily_df['usage'] / 3600
     
     # Default to daily if no option specified
@@ -447,12 +452,16 @@ def logs(debug, daily, hour):
             mins = int((row['usage_hours'] - hours) * 60)
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
-            # Extract just the time portion for display
-            if ' ' in row['date_str']:
-                date_part, time_part = row['date_str'].split(' ')
-                print(f"{date_part} {time_part}:00 - {time_str}")
+            
+            # Handle different timestamp formats
+            if ' ' in str(row['date']):
+                # For hourly data with timestamp like "2025/06/29 00"
+                date_part = str(row['date']).split(' ')[0]
+                hour_part = str(row['date']).split(' ')[1]
+                print(f"{date_part} {hour_part}:00 - {time_str}")
             else:
-                print(f"{row['date_str']} 00:00 - {time_str}")
+                # For daily data
+                print(f"{row['date']} 00:00 - {time_str}")
 
 if __name__ == "__main__":
     cli()
