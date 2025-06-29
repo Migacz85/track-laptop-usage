@@ -28,15 +28,32 @@ def start():
         logging.warning("Tracker is already running")
         return
     
-    # Start both daily and hourly trackers
+    # Start both daily and hourly trackers in separate processes
     try:
-        daily_tracker = LaptopTracker(track_type='daily')
-        hourly_tracker = LaptopTracker(track_type='hourly')
+        import multiprocessing
         
-        # Run both trackers in the same process
+        def run_tracker(track_type):
+            tracker = LaptopTracker(track_type=track_type)
+            tracker.start()
+        
+        # Create separate processes for each tracker
+        daily_process = multiprocessing.Process(
+            target=run_tracker, 
+            args=('daily',)
+        )
+        hourly_process = multiprocessing.Process(
+            target=run_tracker,
+            args=('hourly',)
+        )
+        
+        # Start both processes
+        daily_process.start()
+        hourly_process.start()
+        
+        # Keep the main process running
         while True:
-            daily_tracker.start()
-            hourly_tracker.start()
+            time.sleep(1)
+            
     except Exception as e:
         logging.error(f"Error starting tracker: {e}")
         raise click.Abort()
