@@ -450,9 +450,9 @@ def logs(debug, daily, hour):
             # Extract just the time portion for display
             if ' ' in row['date_str']:
                 date_part, time_part = row['date_str'].split(' ')
-                print(f"{date_part} {time_part}: {time_str}")
+                print(f"{date_part} {time_part}:00 - {time_str}")
             else:
-                print(f"{row['date_str']}: {time_str}")
+                print(f"{row['date_str']} 00:00 - {time_str}")
 
 if __name__ == "__main__":
     cli()
