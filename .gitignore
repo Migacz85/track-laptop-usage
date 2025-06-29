@@ -8,3 +8,4 @@ tmp/
 *.csv
 *.txt
 .ipynb_checkpoints/
+.aider*
