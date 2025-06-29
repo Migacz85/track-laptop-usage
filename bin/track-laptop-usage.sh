@@ -46,17 +46,16 @@ update_log() {
     local timestamp=$(get_timestamp)
     local temp_file="${LOG_PATH}.tmp"
     
-    # Read and process the log file
-    local last_line=""
-    local last_date=""
-    local last_usage=0
-    local updated=false
+    # Read the entire log file into memory
+    mapfile -t lines < "$LOG_PATH"
     
-    # Process the log file line by line
-    while IFS= read -r line; do
+    # Process each line
+    local updated=false
+    for i in "${!lines[@]}"; do
+        line="${lines[$i]}"
+        
         # Skip header line
         if [[ "$line" == "date usage" ]]; then
-            echo "$line" > "$temp_file"
             continue
         fi
         
@@ -67,23 +66,20 @@ update_log() {
         # Check if this is the current hour/day
         if [[ "$current_date" == "$timestamp" ]]; then
             # Update the usage for this period
-            last_line="$timestamp $((current_usage + SLEEP_TIME))"
-            last_date="$current_date"
-            last_usage=$((current_usage + SLEEP_TIME))
+            lines[$i]="$timestamp $((current_usage + SLEEP_TIME))"
             updated=true
-        else
-            # Write previous lines as-is
-            echo "$line" >> "$temp_file"
+            break
         fi
-    done < "$LOG_PATH"
+    done
     
     # If we didn't find an entry for this period, add a new one
     if ! $updated; then
-        last_line="$timestamp $SLEEP_TIME"
+        lines+=("$timestamp $SLEEP_TIME")
     fi
     
-    # Add the last (updated or new) entry
-    echo "$last_line" >> "$temp_file"
+    # Write all lines to temporary file
+    printf "%s\n" "date usage" > "$temp_file"
+    printf "%s\n" "${lines[@]:1}" >> "$temp_file"
     
     # Atomically replace the log file
     mv -f "$temp_file" "$LOG_PATH"
