@@ -421,30 +421,18 @@ def hourly(debug):
         # Ensure we have datetime types
         daily_df['day'] = pd.to_datetime(daily_df['day'])
         
-        # Create complete grid for past 30 days
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=29)
-        date_range = pd.date_range(start_date, end_date, freq='D')
-        
+        # Create complete grid only for days we have data
+        unique_days = daily_df['day'].unique()
         all_hours = pd.DataFrame({'hour': range(24)})
-        all_days = pd.DataFrame({'day': date_range.date})  # Convert to date objects
+        all_days = pd.DataFrame({'day': unique_days})
         complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
         
-        # Ensure daily_df['day'] is date type for merge
-        daily_df['day'] = pd.to_datetime(daily_df['day']).dt.date
-        
-        # Convert daily_df['day'] to date type for proper merging
-        daily_df['day'] = pd.to_datetime(daily_df['day']).dt.date
-        
-        # Merge with actual data, preserving all hours
+        # Merge with actual data
         merged_df = complete_grid.merge(
             daily_df[['day', 'hour', 'usage_hours']],
             on=['day', 'hour'],
             how='left'
-        )
-        
-        # Fill missing values with 0 but keep original usage values
-        merged_df['usage_hours'] = merged_df['usage_hours'].fillna(0)
+        ).fillna(0)
         
         # Print merged DataFrame details
         print("\nMerged DataFrame:")
@@ -454,8 +442,8 @@ def hourly(debug):
         print("\nMerged DataFrame describe:")
         print(merged_df.describe())
         
-        # Ensure we have exactly 30 days worth of data
-        merged_df = merged_df[merged_df['day'].isin(date_range)]
+        # Ensure we have complete 24-hour data for each day
+        merged_df = merged_df.sort_values(['day', 'hour'])
         
         # Create heatmap data - ensure proper alignment
         heatmap_data = merged_df.pivot_table(
