@@ -29,13 +29,13 @@ def cli():
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-@click.option('--daemon', is_flag=True, help='Run in background as a daemon process')
-def start(debug, daemon):
+@click.option('--foreground', is_flag=True, help='Run in foreground (not as daemon)')
+def start(debug, foreground):
     """
     Start tracking laptop usage.
     
     This will begin monitoring your activity and logging usage data.
-    Use --daemon to run in background.
+    Runs as daemon by default unless --foreground is specified.
     """
     # Set log level
     log_level = logging.DEBUG if debug else logging.INFO
@@ -76,7 +76,7 @@ def start(debug, daemon):
             logging.error(f"Error starting tracker: {e}")
             raise click.Abort()
 
-    if daemon:
+    if not foreground:
         # Daemonize the process
         pid = os.fork()
         if pid > 0:
@@ -127,16 +127,17 @@ def stop(debug):
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-@click.option('--daemon', is_flag=True, help='Run in background as a daemon process')
-def restart(debug, daemon):
+@click.option('--foreground', is_flag=True, help='Run in foreground (not as daemon)')
+def restart(debug, foreground):
     """
     Restart the laptop usage tracker.
     
     This will stop any running trackers and start new ones.
+    Runs as daemon by default unless --foreground is specified.
     """
     stop(debug=debug)
     time.sleep(1)  # Give it a moment to stop
-    start(debug=debug, daemon=daemon)
+    start(debug=debug, foreground=foreground)
 
 @cli.command()
 def status():
@@ -155,12 +156,18 @@ def status():
         print("Tracker is not running")
 
 @cli.command()
-def daily():
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
+def daily(debug):
     """
     Show daily usage chart.
     
     Displays a bar chart of your daily computer usage over time.
     """
+    # Set log level
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    
+    logging.debug("Generating daily usage chart")
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "hourly-laptop.log"
     
@@ -179,12 +186,18 @@ def daily():
     plt.show()
 
 @cli.command()
-def hourly():
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
+def hourly(debug):
     """
     Show hourly usage heatmap.
     
     Displays a heatmap visualization of your computer usage by hour.
     """
+    # Set log level
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    
+    logging.debug("Generating hourly usage heatmap")
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "daily-laptop.log"
     
