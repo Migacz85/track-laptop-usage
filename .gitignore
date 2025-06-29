@@ -1,3 +1,9 @@
+# Empty files
+chart.py
+show-graph.sh
+scripts/start_track_laptop_usage.sh
+update-req.sh
+
 # Python
 *.pyc
 *.pyo
