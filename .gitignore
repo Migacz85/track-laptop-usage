@@ -1,11 +1,29 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+
+# Logs
+/log/
+/logs/
+*.log
+
+# IDE
 .DS_Store
-.idea
-/log/old
-/log
-/charts
+.idea/
+.vscode/
+
+# Temp files
 tmp/
-*.jpg
+*.tmp
+*.bak
+
+# Data files
 *.csv
 *.txt
+*.jpg
 .ipynb_checkpoints/
-.aider*
