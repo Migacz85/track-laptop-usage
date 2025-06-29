@@ -8,6 +8,7 @@ import time
 import getpass
 from datetime import datetime, timedelta
 from pathlib import Path
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
