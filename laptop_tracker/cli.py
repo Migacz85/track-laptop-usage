@@ -64,18 +64,31 @@ def start(debug, foreground):
 
     # Start trackers
     try:
-        daily_tracker = LaptopTracker(track_type='daily')
-        hourly_tracker = LaptopTracker(track_type='hourly')
+        import multiprocessing
         
-        logging.info("Starting daily tracker...")
-        daily_tracker.start()
+        def run_tracker(track_type):
+            tracker = LaptopTracker(track_type=track_type)
+            tracker.start()
         
-        logging.info("Starting hourly tracker...")
-        hourly_tracker.start()
+        # Create separate processes for each tracker
+        daily_process = multiprocessing.Process(
+            target=run_tracker, 
+            args=('daily',)
+        )
+        hourly_process = multiprocessing.Process(
+            target=run_tracker,
+            args=('hourly',)
+        )
         
-        logging.info("Tracker is now running. Press Ctrl+C to stop.")
+        # Start both processes
+        daily_process.start()
+        hourly_process.start()
+        
+        logging.info("Trackers are now running. Press Ctrl+C to stop.")
+        
+        # Keep main process running
         while True:
-            time.sleep(1)  # Keep main process alive
+            time.sleep(1)
     except KeyboardInterrupt:
         logging.info("Shutting down tracker...")
     except Exception as e:

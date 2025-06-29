@@ -123,15 +123,19 @@ class LaptopTracker:
         self.running = True
         logging.info(f"Starting {self.track_type} tracking...")
         
-        while self.running:
-            is_idle = self._is_idle()
-            logging.debug(f"Idle state: {is_idle}")
-            if not is_idle:
-                logging.debug(f"User active - adding {self.update_interval}s")
-                self._log_entry(self.update_interval)
-            else:
-                logging.debug(f"User idle for {self.idle_threshold}+ seconds - skipping update")
-            time.sleep(self.update_interval)
+        try:
+            while self.running:
+                is_idle = self._is_idle()
+                logging.debug(f"Idle state: {is_idle}")
+                if not is_idle:
+                    logging.debug(f"User active - adding {self.update_interval}s")
+                    self._log_entry(self.update_interval)
+                else:
+                    logging.debug(f"User idle for {self.idle_threshold}+ seconds - skipping update")
+                time.sleep(self.update_interval)
+        except KeyboardInterrupt:
+            logging.info(f"Stopping {self.track_type} tracker...")
+            self.running = False
 
     @classmethod
     def is_running(cls):
