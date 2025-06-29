@@ -413,25 +413,24 @@ def hourly(debug):
             how='left'
         ).fillna(0)
         
-        # Create heatmap data
+        # Create heatmap data with proper hour mapping
         heatmap_data = merged_df.pivot_table(
             index='hour',
             columns='day',
             values='usage_hours',
-            aggfunc='sum'
+            aggfunc='sum',
+            fill_value=0
         )
         
-        # Sort columns (days) chronologically
-        heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
-        
-        # Ensure we have all 24 hours even if empty
+        # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
         
-        # Ensure we have at least one day
-        if len(heatmap_data.columns) == 0:
-            # Create a single day with all zeros
-            today = datetime.now().date()
-            heatmap_data[today] = 0
+        # Sort columns chronologically
+        heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
+        
+        # Debug output to verify heatmap data
+        logging.debug("Heatmap data preview:")
+        logging.debug(heatmap_data.head())
         
         plt.figure(figsize=(12, 6))
         sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
