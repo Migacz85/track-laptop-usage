@@ -537,21 +537,24 @@ def logs(debug, daily, hour):
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
             
-            # Extract hour from timestamp
-            if isinstance(row['date'], pd.Timestamp):
-                hour = row['date'].hour
-            else:
-                # For string format
-                if ' ' in str(row['date']):
-                    hour = int(str(row['date']).split(' ')[1])
-                else:
-                    hour = 0
+            # Get the raw timestamp string from the log file
+            raw_timestamp = str(row['date'])
             
-            # Format the display timestamp
-            if isinstance(row['date'], pd.Timestamp):
-                date_str = row['date'].strftime('%Y/%m/%d')
+            # Parse the hour from the raw timestamp
+            if ' ' in raw_timestamp and ':' in raw_timestamp:
+                # Format: "2025/06/29 15:00"
+                date_part, time_part = raw_timestamp.split(' ')
+                hour = int(time_part.split(':')[0])
+                date_str = date_part
+            elif ' ' in raw_timestamp:
+                # Format: "2025/06/29 15"
+                date_part, hour_part = raw_timestamp.split(' ')
+                hour = int(hour_part)
+                date_str = date_part
             else:
-                date_str = str(row['date']).split(' ')[0]
+                # Format: "2025/06/29"
+                hour = 0
+                date_str = raw_timestamp
             
             print(f"{date_str} {hour:02d}:00 - {time_str}")
 
