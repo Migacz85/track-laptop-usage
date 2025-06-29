@@ -263,6 +263,9 @@ def status():
     
     Displays the status of any active tracker processes.
     """
+    # Set log level
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    
     running = False
     current_user = os.getlogin()
     
