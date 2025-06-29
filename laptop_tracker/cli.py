@@ -16,8 +16,12 @@ def cli():
 def get_tracker_pid():
     """Get PID of running tracker process"""
     try:
-        pid = int(subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]))
-        return pid
+        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
+        if not output:
+            return None
+        # Get the newest PID (last one in the list)
+        pids = [int(pid) for pid in output.split('\n')]
+        return pids[-1]
     except subprocess.CalledProcessError:
         return None
 
