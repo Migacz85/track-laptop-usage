@@ -500,7 +500,11 @@ def hourly(debug):
         ax = sns.heatmap(
             heatmap_data,
             cmap='YlGnBu',
-            cbar_kws={'label': 'Usage (hours)'},
+            cbar_kws={
+                'label': 'Usage (hours)',
+                'orientation': 'horizontal',
+                'pad': 0.1
+            },
             vmin=0,
             vmax=vmax,
             square=True,
@@ -514,15 +518,15 @@ def hourly(debug):
         ax.set_xticks(range(len(date_labels)))
         ax.set_xticklabels(date_labels, rotation=45, ha='right')
         
-        # Format y-axis hours
+        # Format y-axis hours - horizontal labels
         ax.set_yticks(range(24))
-        ax.set_yticklabels([f"{h:02d}:00" for h in range(24)])
+        ax.set_yticklabels([f"{h:02d}:00" for h in range(24)], rotation=0)
         
         # Add grid lines for better readability
         ax.hlines(range(24), *ax.get_xlim(), colors='white', linewidth=0.5)
         ax.vlines(range(len(date_labels)), *ax.get_ylim(), colors='white', linewidth=0.5)
         
-        plt.title('Hourly Usage Heatmap (Past 30 Days)')
+        plt.title('Hourly Usage Heatmap')
         plt.xlabel('Date (MM/DD)')
         plt.ylabel('Hour of Day')
         plt.tight_layout()
