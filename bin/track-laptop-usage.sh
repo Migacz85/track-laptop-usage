@@ -65,8 +65,8 @@ update_log() {
         # Update existing entry by modifying the last line
         sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
     else
-        # Add new entry with clean format
-        printf "%-15s %d\n" "$timestamp" "$SLEEP_TIME" >> "$LOG_PATH"
+        # Add new entry with consistent format
+        printf "%s %d\n" "$timestamp" "$SLEEP_TIME" >> "$LOG_PATH"
     fi
 }
 
