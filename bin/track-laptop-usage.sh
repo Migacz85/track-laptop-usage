@@ -58,15 +58,18 @@ update_log() {
     local compare_timestamp=$(get_compare_timestamp)
     local last_line=$(tail -n 1 "$LOG_PATH")
     local last_date=${last_line%% *}
-    local last_compare_date=$(echo "$last_date" | cut -d':' -f1 | sed 's/ 00$//')
     local last_usage=${last_line##* }
 
-    if [[ "$last_compare_date" == "$compare_timestamp" ]]; then
+    # Extract just the date and hour for comparison
+    last_compare_date=$(echo "$last_date" | cut -d' ' -f1-2)
+    current_compare_date=$(echo "$timestamp" | cut -d' ' -f1-2)
+
+    if [[ "$last_compare_date" == "$current_compare_date" ]]; then
         # Update existing entry by modifying the last line
         sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
     else
         # Add new entry with consistent format
-        printf "%s %d\n" "$timestamp" "$SLEEP_TIME" >> "$LOG_PATH"
+        echo "$timestamp $SLEEP_TIME" >> "$LOG_PATH"
     fi
 }
 
