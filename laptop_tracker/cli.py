@@ -386,10 +386,9 @@ def hourly(debug):
                         'usage': usage,
                         'day': date_obj.date()  # Add date-only column
                     })
-                        
-                    except ValueError as e:
-                        logging.warning(f"Skipping malformed line: {line} - {e}")
-                        continue
+                except ValueError as e:
+                    logging.warning(f"Skipping malformed line: {line} - {e}")
+                    continue
             
         if not data:
             logging.warning("No valid data found in log file")
