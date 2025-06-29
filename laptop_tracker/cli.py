@@ -447,7 +447,12 @@ def logs(debug, daily, hour):
             mins = int((row['usage_hours'] - hours) * 60)
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
-            print(f"{row['date_str']}: {time_str}")
+            # Extract just the time portion for display
+            if ' ' in row['date_str']:
+                date_part, time_part = row['date_str'].split(' ')
+                print(f"{date_part} {time_part}: {time_str}")
+            else:
+                print(f"{row['date_str']}: {time_str}")
 
 if __name__ == "__main__":
     cli()
