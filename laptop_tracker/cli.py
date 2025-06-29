@@ -351,6 +351,12 @@ def hourly(debug):
     
     # Read and parse the log file with consistent timestamp handling
     try:
+        # First print raw file contents
+        print("\nRaw log file contents:")
+        with open(daily_log_file, 'r') as f:
+            print(f.read())
+            
+        # Now process the data
         data = []
         with open(daily_log_file, 'r') as f:
             for line in f.readlines()[1:]:  # Skip header
@@ -361,6 +367,7 @@ def hourly(debug):
                 # Split on last space only (handles timestamps with spaces)
                 parts = line.rsplit(' ', 1)
                 if len(parts) != 2:
+                    print(f"Skipping malformed line (missing parts): {line}")
                     continue
                         
                 timestamp, usage = parts[0], parts[1]
@@ -370,15 +377,20 @@ def hourly(debug):
                         
                     # Standardize timestamp format - replace | with space
                     timestamp = timestamp.replace('|', ' ')
+                    print(f"\nProcessing line: {line}")
+                    print(f"Parsed timestamp: {timestamp}")
+                    print(f"Parsed usage: {usage}")
                         
                     # Parse into datetime object
                     if ' ' in timestamp:  # Has hour component
                         date_str, hour_str = timestamp.split(' ')
                         hour = int(hour_str.split(':')[0])
                         date_obj = pd.to_datetime(date_str).replace(hour=hour)
+                        print(f"Parsed as datetime with hour: {date_obj}")
                     else:  # Date only
                         date_obj = pd.to_datetime(timestamp)
                         hour = 0
+                        print(f"Parsed as date only: {date_obj}")
                             
                     data.append({
                         'date': date_obj,
@@ -386,22 +398,25 @@ def hourly(debug):
                         'usage': usage,
                         'day': date_obj.date()  # Add date-only column
                     })
+                    print(f"Added data point: {data[-1]}")
                 except ValueError as e:
-                    logging.warning(f"Skipping malformed line: {line} - {e}")
+                    print(f"Error parsing line: {line} - {e}")
                     continue
             
         if not data:
-            logging.warning("No valid data found in log file")
-            print("No usage data available to display")
+            print("No valid data found in log file")
             return
                 
         daily_df = pd.DataFrame(data)
         daily_df['usage_hours'] = daily_df['usage'] / 3600
         
-        # Debug output to verify data
-        logging.debug(f"Found {len(daily_df)} log entries")
-        logging.debug("Sample data:")
-        logging.debug(daily_df.head())
+        # Print parsed DataFrame
+        print("\nParsed DataFrame:")
+        print(daily_df)
+        print("\nDataFrame info:")
+        print(daily_df.info())
+        print("\nDataFrame describe:")
+        print(daily_df.describe())
         
         # Ensure we have datetime types
         daily_df['day'] = pd.to_datetime(daily_df['day'])
@@ -431,9 +446,13 @@ def hourly(debug):
         # Fill missing values with 0 but keep original usage values
         merged_df['usage_hours'] = merged_df['usage_hours'].fillna(0)
         
-        # Debug output to verify merged data
-        logging.debug("Merged data preview:")
-        logging.debug(merged_df.head())
+        # Print merged DataFrame details
+        print("\nMerged DataFrame:")
+        print(merged_df)
+        print("\nMerged DataFrame info:")
+        print(merged_df.info())
+        print("\nMerged DataFrame describe:")
+        print(merged_df.describe())
         
         # Ensure we have exactly 30 days worth of data
         merged_df = merged_df[merged_df['day'].isin(date_range)]
