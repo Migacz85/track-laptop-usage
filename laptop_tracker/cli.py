@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import psutil
 from .tracker import LaptopTracker
 
 # Configure logging
