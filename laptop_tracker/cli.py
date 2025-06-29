@@ -320,12 +320,26 @@ def logs(debug, daily, hour):
     
     # Read and parse the log file
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
+    
     # Handle mixed timestamp formats (daily and hourly)
-    daily_df['date'] = pd.to_datetime(
-        daily_df['date'], 
-        format='mixed',
-        dayfirst=False
-    )
+    try:
+        # First try parsing as hourly format
+        daily_df['date'] = pd.to_datetime(
+            daily_df['date'], 
+            format='%Y/%m/%d %H',
+            dayfirst=False
+        )
+    except ValueError:
+        try:
+            # Fall back to daily format
+            daily_df['date'] = pd.to_datetime(
+                daily_df['date'], 
+                format='%Y/%m/%d',
+                dayfirst=False
+            )
+        except ValueError:
+            logger.error("Could not parse log file timestamps")
+            return
     daily_df['usage_hours'] = daily_df['usage'] / 3600
     
     # Default to daily if no option specified
@@ -348,7 +362,11 @@ def logs(debug, daily, hour):
     if hour:
         # Show hourly details
         daily_df['hour'] = daily_df['date'].dt.hour
-        daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d %H:00')
+        # Format date string based on track type
+        if ' ' in daily_df['date'].iloc[0]:  # Contains hour info
+            daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d %H:00')
+        else:  # Daily format
+            daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d') + ' 00:00'
         
         print("Hourly Usage Details")
         print("-" * 40)
