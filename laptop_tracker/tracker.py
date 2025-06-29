@@ -77,40 +77,35 @@ class LaptopTracker:
     def _log_entry(self, usage):
         """Add or update log entry for current period"""
         timestamp = self._get_timestamp()
-        lines = []
-        updated = False
-
+        entries = {}
+        
         logging.debug(f"Updating log for {timestamp} with {usage}s")
 
         # Read existing log entries
         if self.log_file.exists():
             with open(self.log_file, 'r') as f:
-                lines = f.readlines()
-            logging.debug(f"Found {len(lines)} existing log entries")
+                for line in f.readlines()[1:]:  # Skip header
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        log_timestamp, log_usage = line.rsplit(' ', 1)
+                        entries[log_timestamp] = int(log_usage)
+                    except ValueError:
+                        logging.warning(f"Skipping malformed log entry: {line}")
+                        continue
 
-        # Process entries
-        new_lines = []
-        for line in lines[1:]:  # Skip header
-            line = line.strip()
-            if not line:
-                continue
-                
-            log_timestamp, log_usage = line.rsplit(' ', 1)
-            if log_timestamp == timestamp:
-                # Update existing entry
-                new_lines.append(f"{timestamp} {int(log_usage) + usage}\n")
-                updated = True
-            else:
-                new_lines.append(f"{line}\n")
+        # Update or add entry
+        if timestamp in entries:
+            entries[timestamp] += usage
+        else:
+            entries[timestamp] = usage
 
-        # Add new entry if needed
-        if not updated:
-            new_lines.append(f"{timestamp} {usage}\n")
-
-        # Write updated log
+        # Write updated log with consistent formatting
         with open(self.log_file, 'w') as f:
             f.write("date usage\n")
-            f.writelines(new_lines)
+            for ts, usage in sorted(entries.items()):
+                f.write(f"{ts} {usage}\n")
 
     def _handle_signal(self, signum, frame):
         """Handle termination signals"""

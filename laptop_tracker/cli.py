@@ -405,37 +405,35 @@ def logs(debug, daily, hour):
         print("No log file found")
         return
     
-    # Read and parse the log file with more robust handling
+    # Read and parse the log file with more flexible handling
     try:
-        daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0, 
-                             names=['date', 'usage'], skipinitialspace=True)
+        # First try reading with space separator
+        try:
+            daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0,
+                                 names=['date', 'usage'], skipinitialspace=True)
+        except:
+            # Fall back to any whitespace separator
+            daily_df = pd.read_csv(daily_log_file, sep='\s+', engine='python', header=0,
+                                 names=['date', 'usage'])
         
-        # Handle both daily and hourly formats
-        daily_df['date'] = pd.to_datetime(
-            daily_df['date'],
-            format='%Y/%m/%d %H',  # Try hourly format first
-            errors='coerce'
-        )
+        # Convert timestamp with multiple format attempts
+        for fmt in ['%Y/%m/%d %H', '%Y/%m/%d']:
+            try:
+                daily_df['date'] = pd.to_datetime(daily_df['date'], format=fmt)
+                break
+            except ValueError:
+                continue
         
-        # For daily format entries, add default hour
-        if daily_df['date'].isna().any():
-            daily_df['date'] = pd.to_datetime(
-                daily_df['date'].fillna('').astype(str) + ' 00',  # Add default hour
-                format='%Y/%m/%d %H',
-                errors='coerce'
-            )
-            
-        # If still invalid, try pure daily format
-        if daily_df['date'].isna().any():
-            daily_df['date'] = pd.to_datetime(
-                daily_df['date'].fillna('').astype(str),
-                format='%Y/%m/%d',
-                errors='coerce'
-            )
+        # If still not parsed, try automatic parsing
+        if not pd.api.types.is_datetime64_any_dtype(daily_df['date']):
+            daily_df['date'] = pd.to_datetime(daily_df['date'], errors='coerce')
             
         if daily_df['date'].isna().any():
-            logger.error("Could not parse some timestamps in log file")
+            logger.error("Could not parse timestamps - invalid format in log file")
+            logger.debug(f"Problematic timestamps: {daily_df[daily_df['date'].isna()]['date']}")
             return
+            
+        logger.debug("Successfully parsed log file timestamps")
             
     except Exception as e:
         logger.error(f"Error reading log file: {e}")
