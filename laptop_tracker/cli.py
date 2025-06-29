@@ -29,10 +29,22 @@ logging.basicConfig(
 @click.group()
 def cli():
     """
-    Track and analyze laptop usage patterns.
+    Laptop Usage Tracker - Monitor and analyze your computer usage patterns.
     
-    This tool monitors your active computer usage and provides detailed
-    reports and visualizations of your daily and hourly activity.
+    This tool tracks your active computer usage (excluding idle time) and provides:
+    - Daily usage statistics and charts
+    - Hourly usage heatmaps
+    - Detailed usage logs
+    
+    Start tracking with 'laptop-tracker start' and view reports with:
+    - 'laptop-tracker daily' for daily usage
+    - 'laptop-tracker hourly' for hourly heatmaps
+    - 'laptop-tracker logs' for detailed usage data
+    
+    Manage tracking with:
+    - 'laptop-tracker status' to check if running
+    - 'laptop-tracker stop' to stop tracking
+    - 'laptop-tracker restart' to restart tracking
     """
     pass
 
