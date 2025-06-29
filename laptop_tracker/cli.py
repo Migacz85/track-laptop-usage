@@ -461,14 +461,21 @@ def logs(debug, daily, hour):
     
     # Read and parse the log file with more flexible handling
     try:
-        # First try reading with space separator
-        try:
-            daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0,
-                                 names=['date', 'usage'], skipinitialspace=True)
-        except:
-            # Fall back to any whitespace separator
-            daily_df = pd.read_csv(daily_log_file, sep=r'\s+', engine='python', header=0,
-                                 names=['date', 'usage'])
+        # Read log file with more robust parsing
+        with open(daily_log_file, 'r') as f:
+            lines = f.readlines()
+        
+        # Skip header and process lines manually
+        data = []
+        for line in lines[1:]:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.rsplit(' ', 1)  # Split on last space only
+            if len(parts) == 2:
+                data.append(parts)
+        
+        daily_df = pd.DataFrame(data, columns=['date', 'usage'])
         
         # Convert timestamp with consistent format
         daily_df['date'] = pd.to_datetime(
