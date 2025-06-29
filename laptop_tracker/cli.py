@@ -486,7 +486,11 @@ def logs(debug, daily, hour):
                 # Fallback for string format
                 if ' ' in str(row['date']):
                     date_part, hour_part = str(row['date']).split(' ')
-                    print(f"{date_part} {hour_part}:00 - {time_str}")
+                    # Check if hour_part is a valid hour
+                    if hour_part.isdigit() and 0 <= int(hour_part) <= 23:
+                        print(f"{date_part} {hour_part}:00 - {time_str}")
+                    else:
+                        print(f"{date_part} 00:00 - {time_str}")
                 else:
                     print(f"{row['date']} 00:00 - {time_str}")
 
