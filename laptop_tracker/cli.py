@@ -352,14 +352,22 @@ def hourly(debug):
     try:
         daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
         
-        # Convert timestamp to datetime
+        # Convert timestamp to datetime with more flexible parsing
         daily_df['date'] = pd.to_datetime(
             daily_df['date'],
-            format='%Y/%m/%d %H:%M',
+            format='%Y/%m/%d %H',
             errors='coerce'
         )
         
         # Handle any invalid timestamps
+        if daily_df['date'].isna().any():
+            # Try alternative format if first attempt failed
+            daily_df['date'] = pd.to_datetime(
+                daily_df['date'].fillna('').astype(str) + ':00',
+                format='%Y/%m/%d %H:%M',
+                errors='coerce'
+            )
+            
         if daily_df['date'].isna().any():
             logging.warning("Some timestamps could not be parsed")
             daily_df = daily_df[daily_df['date'].notna()]
