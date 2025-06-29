@@ -23,7 +23,11 @@ get_timestamp() {
 
 # Check if user is idle
 is_idle() {
-    idle_ms=$(python3 -c "import pyxprintidle; print(pyxprintidle.idle_time())")
+    if ! command -v xprintidle &> /dev/null; then
+        echo "xprintidle not found! Please install it with: sudo apt-get install xprintidle"
+        exit 1
+    fi
+    idle_ms=$(xprintidle)
     idle_sec=$((idle_ms / 1000))
     [[ $idle_sec -gt $TRACK_TILL ]]
 }
