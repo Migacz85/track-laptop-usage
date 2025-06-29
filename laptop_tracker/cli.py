@@ -126,7 +126,7 @@ def hourly():
 @click.option('--date', default=None, help='Date in YYYY/MM/DD format')
 @click.option('--hour', default=None, type=int, help='Hour (0-23)')
 def logs(date, hour):
-    """Show raw logs for specific date and hour"""
+    """Show usage data for specific date and/or hour"""
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "daily-laptop.log"
     
@@ -134,20 +134,43 @@ def logs(date, hour):
         print("No log file found")
         return
     
-    with open(daily_log_file, 'r') as f:
-        print(f"Logs for {date or 'all dates'} {f'hour {hour:02d}' if hour is not None else ''}")
-        print("-" * 40)
-        
-        # Skip header
-        next(f)
-        
-        for line in f:
-            log_date, usage = line.strip().split()
-            log_hour = int(log_date.split('|')[1]) if '|' in log_date else 0
-            
-            if (date is None or date in log_date) and \
-               (hour is None or hour == log_hour):
-                print(f"{log_date}: {int(usage)//3600}h {int(usage)%3600//60}m")
+    # Read and parse the log file
+    daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
+    daily_df['date'] = pd.to_datetime(daily_df['date'], format='%Y/%m/%d')
+    daily_df['usage_hours'] = daily_df['usage'] / 3600
+    
+    # Filter by date if specified
+    if date:
+        date_filter = pd.to_datetime(date, format='%Y/%m/%d')
+        daily_df = daily_df[daily_df['date'].dt.date == date_filter.date()]
+    
+    # Filter by hour if specified
+    if hour is not None:
+        daily_df['hour'] = daily_df['date'].dt.hour
+        daily_df = daily_df[daily_df['hour'] == hour]
+    
+    # Print results
+    if len(daily_df) == 0:
+        print("No matching entries found")
+        return
+    
+    print(f"Usage data for {date or 'all dates'} {f'hour {hour:02d}' if hour is not None else ''}")
+    print("-" * 40)
+    
+    if hour is None:
+        # Daily summary
+        for _, row in daily_df.iterrows():
+            date_str = row['date'].strftime('%Y/%m/%d')
+            hours = int(row['usage_hours'])
+            mins = int((row['usage_hours'] - hours) * 60)
+            print(f"{date_str}: {hours}h {mins}m")
+    else:
+        # Hourly details
+        for _, row in daily_df.iterrows():
+            date_str = row['date'].strftime('%Y/%m/%d %H:00')
+            hours = int(row['usage_hours'])
+            mins = int((row['usage_hours'] - hours) * 60)
+            print(f"{date_str}: {hours}h {mins}m")
 
 if __name__ == "__main__":
     cli()
