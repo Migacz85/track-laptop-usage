@@ -308,9 +308,11 @@ def logs(debug, daily, hour):
     Displays detailed usage statistics in text format.
     Use --daily for daily summaries or --hour for hourly breakdowns.
     """
-    # Set log level
+    # Set log level and get logger
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "daily-laptop.log"
     
