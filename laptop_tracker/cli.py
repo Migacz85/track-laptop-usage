@@ -496,6 +496,24 @@ def hourly():
         else:
             vmax = 1
         
+        # Configure color scaling with 100 distinct levels
+        max_val = heatmap_data.max().max()
+        if max_val > 0:
+            # Use the maximum value as the darkest color
+            vmax = max_val
+            # Ensure we have at least 100 distinct color levels
+            if vmax < 1:
+                vmax = 1  # Minimum range for 100 levels
+        else:
+            # Default scale if no data
+            vmax = 1
+            
+        # Set vmin to 0 to ensure consistent baseline
+        vmin = 0
+        
+        # Create custom color map with 100 distinct levels
+        cmap = sns.color_palette("YlGnBu", n_colors=100, as_cmap=True)
+
         # Print essential heatmap info
         print("\nHeatmap Summary:")
         print(f"Date Range: {heatmap_data.columns[0]} to {heatmap_data.columns[-1]}")
@@ -505,18 +523,21 @@ def hourly():
         plt.figure(figsize=(16, 8))
         ax = sns.heatmap(
             heatmap_data,
-            cmap='YlGnBu',
+            cmap=cmap,
             cbar_kws={
                 'label': 'Usage (hours)',
                 'orientation': 'horizontal',
-                'pad': 0.1
+                'pad': 0.1,
+                'ticks': [0, vmax/2, vmax],
+                'shrink': 0.8  # Make colorbar slightly smaller
             },
-            vmin=0,
+            vmin=vmin,
             vmax=vmax,
             square=True,
             linewidths=0.3,
             linecolor='white',
-            annot=False
+            annot=False,
+            norm=plt.Normalize(vmin, vmax)  # Ensure 100 distinct levels
         )
         
         # Format x-axis dates to be more readable
