@@ -420,8 +420,11 @@ def hourly(debug):
         date_range = pd.date_range(start_date, end_date, freq='D')
         
         all_hours = pd.DataFrame({'hour': range(24)})
-        all_days = pd.DataFrame({'day': date_range})
+        all_days = pd.DataFrame({'day': date_range.date})  # Convert to date objects
         complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
+        
+        # Ensure daily_df['day'] is date type for merge
+        daily_df['day'] = pd.to_datetime(daily_df['day']).dt.date
         
         # Merge with actual data, filling missing hours with 0
         merged_df = complete_grid.merge(
