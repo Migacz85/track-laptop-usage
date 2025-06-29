@@ -477,15 +477,21 @@ def logs(debug, daily, hour):
                     # Convert usage to integer
                     parts[1] = int(parts[1])
                     # Store both raw and parsed timestamps
-                    parsed_date = pd.to_datetime(
-                        parts[0],
-                        format='%Y/%m/%d %H:%M',
-                        errors='coerce'
-                    )
-                    if pd.isna(parsed_date):
+                    # Parse components directly from raw string
+                    if ' ' in parts[0] and ':' in parts[0]:
+                        date_part, time_part = parts[0].split(' ')
+                        year, month, day = date_part.split('/')
+                        hour, minute = time_part.split(':')
+                        parsed_date = datetime(
+                            year=int(year),
+                            month=int(month),
+                            day=int(day),
+                            hour=int(hour),
+                            minute=int(minute)
+                        )
+                        data.append([parts[0], parsed_date, parts[1]])
+                    else:
                         logging.warning(f"Skipping malformed timestamp: {parts[0]}")
-                        continue
-                    data.append([parts[0], parsed_date, parts[1]])
                 except ValueError:
                     logging.warning(f"Skipping malformed line: {line}")
                     continue
@@ -539,28 +545,10 @@ def logs(debug, daily, hour):
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
             
-            # Use the raw timestamp directly
-            raw_timestamp = row['raw_date']
-            logging.debug(f"Raw timestamp: {raw_timestamp}")
-            
-            # Parse the hour from the raw timestamp
-            if ' ' in raw_timestamp and ':' in raw_timestamp:
-                # Format: "2025/06/29 15:00"
-                date_part, time_part = raw_timestamp.split(' ')
-                hour = int(time_part.split(':')[0])
-                date_str = date_part
-                logging.debug(f"Parsed as full timestamp: date={date_part} hour={hour}")
-            elif ' ' in raw_timestamp:
-                # Format: "2025/06/29 15"
-                date_part, hour_part = raw_timestamp.split(' ')
-                hour = int(hour_part)
-                date_str = date_part
-                logging.debug(f"Parsed as date+hour: date={date_part} hour={hour}")
-            else:
-                # Format: "2025/06/29"
-                hour = 0
-                date_str = raw_timestamp
-                logging.debug(f"Parsed as date only: date={date_str} hour=0")
+            # Directly use components from parsed datetime
+            hour = row['date'].hour
+            date_str = row['date'].strftime('%Y/%m/%d')
+            logging.debug(f"Displaying entry: date={date_str} hour={hour}")
             
             print(f"{date_str} {hour:02d}:00 - {time_str}")
 
