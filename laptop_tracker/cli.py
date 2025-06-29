@@ -174,16 +174,14 @@ def is_bash_tracker_running():
         logging.error(f"Tracker failed: {e}")
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-def stop(debug):
+def stop():
     """
     Stop tracking laptop usage.
     
     This will terminate any running tracker processes.
     """
     # Set log level
-    log_level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
     # Ensure we have a logger instance
     logger = logging.getLogger(__name__)
@@ -248,18 +246,15 @@ def stop(debug):
         logger.info("No bash tracker processes found")
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
-@click.option('--foreground', is_flag=True, help='Run in foreground (not as daemon)')
-def restart(debug, foreground):
+def restart():
     """
     Restart the laptop usage tracker.
     
     This will stop any running trackers and start new ones.
-    Runs as daemon by default unless --foreground is specified.
     """
-    stop(debug=debug)
+    stop()
     time.sleep(1)  # Give it a moment to stop
-    start(debug=debug, foreground=foreground)
+    start()
 
 @cli.command()
 def status():
