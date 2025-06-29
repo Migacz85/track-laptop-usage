@@ -346,7 +346,7 @@ def hourly(debug):
     logging.debug("Generating hourly usage heatmap")
     log_dir = Path(__file__).parent.parent / "log"
     log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
-    daily_log_file = log_dir / "daily-laptop.log"
+    daily_log_file = log_dir / "hourly-laptop.log"
     
     # Read and parse the log file
     try:
@@ -369,6 +369,10 @@ def hourly(debug):
             logging.warning("No valid data found in log file")
             print("No usage data available to display")
             return
+        
+        # Debug output to show what data was found
+        logging.debug(f"Found {len(daily_df)} log entries")
+        logging.debug(f"Sample data:\n{daily_df.head()}")
         
         # Convert usage to hours
         daily_df['usage_hours'] = daily_df['usage'] / 3600
