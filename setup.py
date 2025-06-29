@@ -9,7 +9,7 @@ setup(
         "matplotlib>=3.1.2",
         "pandas>=1.0.0",
         "seaborn>=0.10.0",
-        "numpy>=1.23.0",
+        "numpy>=1.22,<1.25",
         "psutil>=5.8.0",
     ],
     entry_points={
