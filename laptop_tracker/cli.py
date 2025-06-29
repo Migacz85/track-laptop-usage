@@ -103,7 +103,7 @@ def hourly():
     
     heatmap_data = daily_df.pivot_table(index='hour', columns='day', values='usage_hours', aggfunc='sum')
     
-    plt.figure(f极size=(12, 6))
+    plt.figure(figsize=(12, 6))
     sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'})
     plt.title('Hourly Usage Heatmap')
     plt.xlabel('Date')

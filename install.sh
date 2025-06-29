@@ -15,6 +15,7 @@ echo "Creating log directory..."
 mkdir -p log
 
 echo "Installation complete!"
-echo "To start tracking, run: laptop-tracker track"
-echo "To view charts, run: laptop-tracker show"
+echo "To start tracking, run: laptop-tracker start"
+echo "To view daily chart: laptop-tracker daily"
+echo "To view hourly heatmap: laptop-tracker hourly"
 
