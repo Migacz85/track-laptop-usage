@@ -50,35 +50,24 @@ class LaptopTracker:
             try:
                 idle_ms = int(subprocess.check_output(['xprintidle']).decode().strip())
                 idle_sec = idle_ms / 1000
+                logging.debug(f"X11 idle time: {idle_sec}s")
                 if idle_sec > self.idle_threshold:
+                    logging.debug("X11 idle time exceeds threshold")
                     return True
-            except (subprocess.CalledProcessError, FileNotFoundError):
+                return False  # Active if idle time is below threshold
+            except (subprocess.CalledProcessError, FileNotFoundError) as e:
+                logging.warning(f"xprintidle not available: {e}")
                 pass
                 
-            # Method 2: Check console idle time (for terminal sessions)
+            # Only use X11 idle detection since it's most reliable
             try:
-                who_output = subprocess.check_output(['who', '-u']).decode().strip()
-                if who_output:
-                    idle_str = who_output.splitlines()[0].split()[4]  # Get idle time from first session
-                    if idle_str == '.':
-                        return False  # Active if idle time is '.'
-                    idle_sec = int(idle_str.split(':')[0]) * 60 + int(idle_str.split(':')[1])
-                    if idle_sec > self.idle_threshold:
-                        return True
-            except (subprocess.CalledProcessError, ValueError, IndexError):
-                pass
-                
-            # Method 3: Fallback to /proc/uptime
-            try:
-                with open('/proc/uptime', 'r') as f:
-                    uptime, idle_time = map(float, f.read().split())
-                if idle_time > self.idle_threshold:
-                    return True
-            except Exception:
-                pass
-                
-            # If none of the methods detected idle, assume active
-            return False
+                idle_ms = int(subprocess.check_output(['xprintidle']).decode().strip())
+                idle_sec = idle_ms / 1000
+                logging.debug(f"X11 idle time: {idle_sec}s")
+                return idle_sec > self.idle_threshold
+            except (subprocess.CalledProcessError, FileNotFoundError) as e:
+                logging.error(f"xprintidle not available - cannot detect idle state: {e}")
+                return False  # Assume active if we can't detect idle state
             
         except Exception as e:
             logging.warning(f"Could not check idle time: {e}")
@@ -134,11 +123,13 @@ class LaptopTracker:
         logging.info(f"Starting {self.track_type} tracking...")
         
         while self.running:
-            if not self._is_idle():
+            is_idle = self._is_idle()
+            logging.debug(f"Idle state: {is_idle}")
+            if not is_idle:
                 logging.debug(f"User active - adding {self.update_interval}s")
                 self._log_entry(self.update_interval)
             else:
-                logging.debug("User idle - skipping update")
+                logging.debug(f"User idle for {self.idle_threshold}+ seconds - skipping update")
             time.sleep(self.update_interval)
 
     @classmethod
