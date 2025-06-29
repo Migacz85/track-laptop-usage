@@ -34,10 +34,9 @@ tmp/
 *.jpg
 .ipynb_checkpoints/
 
-# Aider cache files
-.aider.chat.history.md
-.aider.input.history
-.aider.tags.cache.v4/
+# Aider files
+.aider*
+.aider*/
 
 # Swap files
 .*.swp
