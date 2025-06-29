@@ -63,8 +63,11 @@ update_log() {
         current_date=${line%% *}
         current_usage=${line##* }
         
-        # Check if this is the current hour
-        if [[ "$current_date" == "$timestamp" ]]; then
+        # Check if this is the current hour (handle both date and hour)
+        current_date_hour=$(echo "$current_date" | cut -d' ' -f1-2)
+        timestamp_hour=$(echo "$timestamp" | cut -d' ' -f1-2)
+        
+        if [[ "$current_date_hour" == "$timestamp_hour" ]]; then
             # Update the usage for this period
             if ! is_idle; then
                 lines[$i]="$timestamp $((current_usage + SLEEP_TIME))"
