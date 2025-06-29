@@ -21,6 +21,15 @@ get_timestamp() {
     esac
 }
 
+# Get simplified timestamp for comparison (just date and hour)
+get_compare_timestamp() {
+    case "$TRACK_TYPE" in
+        daily)   date +'%Y/%m/%d' ;;
+        hourly)  date +'%Y/%m/%d %H' ;;
+        minutes) date +'%Y/%m/%d %H:%M' ;;
+    esac
+}
+
 # Ensure log directory exists
 mkdir -p "$LOG_DIR"
 
@@ -46,11 +55,13 @@ init_log() {
 # Update log with current usage
 update_log() {
     local timestamp=$(get_timestamp)
+    local compare_timestamp=$(get_compare_timestamp)
     local last_line=$(tail -n 1 "$LOG_PATH")
     local last_date=${last_line%% *}
+    local last_compare_date=$(echo "$last_date" | cut -d':' -f1 | sed 's/ 00$//')
     local last_usage=${last_line##* }
 
-    if [[ "$last_date" == "$timestamp" ]]; then
+    if [[ "$last_compare_date" == "$compare_timestamp" ]]; then
         # Update existing entry by modifying the last line
         sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
     else
