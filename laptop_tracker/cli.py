@@ -556,25 +556,23 @@ def logs(debug, daily, hour):
             if len(parts) == 2:
                 try:
                     # Convert usage to integer
-                    parts[1] = int(parts[1])
-                    # Store both raw and parsed timestamps
-                    # Parse components directly from raw string
-                    if ' ' in parts[0] and ':' in parts[0]:
-                        date_part, time_part = parts[0].split(' ')
-                        year, month, day = date_part.split('/')
-                        hour, minute = time_part.split(':')
-                        parsed_date = datetime(
-                            year=int(year),
-                            month=int(month),
-                            day=int(day),
-                            hour=int(hour),
-                            minute=int(minute)
-                        )
-                        data.append([parts[0], parsed_date, parts[1]])
-                    else:
-                        logging.warning(f"Skipping malformed timestamp: {parts[0]}")
-                except ValueError:
-                    logging.warning(f"Skipping malformed line: {line}")
+                    usage = int(parts[1])
+                    timestamp = parts[0]
+                    
+                    # Handle different timestamp formats
+                    if '|' in timestamp:  # Heatmap format
+                        date_part, time_part = timestamp.split('|')
+                        if ':' in time_part:  # Minutes format
+                            hour, minute = time_part.split(':')
+                            parsed_date = datetime.strptime(f"{date_part} {hour}:{minute}", "%Y/%m/%d %H:%M")
+                        else:  # Hourly format
+                            parsed_date = datetime.strptime(f"{date_part} {time_part}:00", "%Y/%m/%d %H:%M")
+                    else:  # Daily format
+                        parsed_date = datetime.strptime(timestamp, "%Y/%m/%d")
+                    
+                    data.append([timestamp, parsed_date, usage])
+                except ValueError as e:
+                    logging.warning(f"Skipping malformed line: {line} - {e}")
                     continue
             
         daily_df = pd.DataFrame(data, columns=['raw_date', 'date', 'usage'])
