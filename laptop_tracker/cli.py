@@ -92,8 +92,22 @@ def is_bash_tracker_running():
             logging.error(f"Error starting tracker: {e}")
             raise click.Abort()
 
-    # Always run in foreground (removed daemonization)
+    # Always run in foreground
+    logging.info("Starting laptop tracker in foreground mode...")
+    logging.debug("Checking system status...")
+    
+    # Verify dependencies
+    try:
+        subprocess.check_output(['xprintidle', '--version'])
+        logging.debug("xprintidle is available")
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logging.warning("xprintidle not found - idle detection may be limited")
+    
+    # Start trackers with status output
+    logging.info("Starting tracking processes...")
     run_trackers()
+    
+    logging.info("Tracker is now running. Press Ctrl+C to stop.")
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
