@@ -208,7 +208,7 @@ def status():
     try:
         output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
         if output:
-            print(f"Bash tracker running (PID(s): {output.replace('\n', ', ')})")
+            print(f"Bash tracker running (PID(s): {output.replace(chr(10), ', ')})")
             running = True
     except subprocess.CalledProcessError:
         pass
@@ -375,7 +375,9 @@ def logs(debug, daily, hour):
         for _, row in daily_df.iterrows():
             hours = int(row['usage_hours'])
             mins = int((row['usage_hours'] - hours) * 60)
-            print(f"{row['date_str']}: {hours}h {mins}m")
+            # Format time nicely with leading zeros
+            time_str = f"{hours:02d}:{mins:02d}"
+            print(f"{row['date_str']}: {time_str}")
 
 if __name__ == "__main__":
     cli()
