@@ -19,14 +19,24 @@ logging.basicConfig(
 
 @click.group()
 def cli():
-    """Laptop Usage Tracker"""
+    """
+    Track and analyze laptop usage patterns.
+    
+    This tool monitors your active computer usage and provides detailed
+    reports and visualizations of your daily and hourly activity.
+    """
     pass
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable debug logging')
-@click.option('--daemon', is_flag=True, help='Run as daemon in background')
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
+@click.option('--daemon', is_flag=True, help='Run in background as a daemon process')
 def start(debug, daemon):
-    """Start tracking laptop usage"""
+    """
+    Start tracking laptop usage.
+    
+    This will begin monitoring your activity and logging usage data.
+    Use --daemon to run in background.
+    """
     # Set log level
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -78,9 +88,13 @@ def start(debug, daemon):
         run_trackers()
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
 def stop(debug):
-    """Stop tracking laptop usage"""
+    """
+    Stop tracking laptop usage.
+    
+    This will terminate any running tracker processes.
+    """
     # Set log level
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -112,17 +126,25 @@ def stop(debug):
         logging.info("No tracker process found")
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable debug logging')
-@click.option('--daemon', is_flag=True, help='Run as daemon in background')
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
+@click.option('--daemon', is_flag=True, help='Run in background as a daemon process')
 def restart(debug, daemon):
-    """Restart tracking laptop usage"""
+    """
+    Restart the laptop usage tracker.
+    
+    This will stop any running trackers and start new ones.
+    """
     stop(debug=debug)
     time.sleep(1)  # Give it a moment to stop
     start(debug=debug, daemon=daemon)
 
 @cli.command()
 def status():
-    """Check if tracker is running"""
+    """
+    Check if the tracker is currently running.
+    
+    Displays the status of any active tracker processes.
+    """
     try:
         output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
         if output:
@@ -134,7 +156,11 @@ def status():
 
 @cli.command()
 def daily():
-    """Show daily usage chart"""
+    """
+    Show daily usage chart.
+    
+    Displays a bar chart of your daily computer usage over time.
+    """
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "hourly-laptop.log"
     
@@ -154,7 +180,11 @@ def daily():
 
 @cli.command()
 def hourly():
-    """Show hourly usage heatmap"""
+    """
+    Show hourly usage heatmap.
+    
+    Displays a heatmap visualization of your computer usage by hour.
+    """
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "daily-laptop.log"
     
@@ -194,11 +224,16 @@ def hourly():
     plt.show()
 
 @cli.command()
-@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option('--debug', is_flag=True, help='Enable verbose debug logging')
 @click.option('--daily', is_flag=True, help='Show daily usage summary')
 @click.option('--hour', is_flag=True, help='Show hourly usage details')
 def logs(debug, daily, hour):
-    """Show usage data - daily summary or hourly details"""
+    """
+    Show usage data - daily summary or hourly details.
+    
+    Displays detailed usage statistics in text format.
+    Use --daily for daily summaries or --hour for hourly breakdowns.
+    """
     # Set log level
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
