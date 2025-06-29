@@ -38,3 +38,7 @@ tmp/
 .aider.chat.history.md
 .aider.input.history
 .aider.tags.cache.v4/
+
+# Swap files
+.*.swp
+*.swp
