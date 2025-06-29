@@ -106,9 +106,12 @@ def stop(debug):
     found = False
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            if 'python' in proc.info['name'].lower() and \
-               'laptop_tracker' in ' '.join(proc.info['cmdline'] or []):
-                logger.debug(f"Stopping tracker process {proc.info['pid']}")
+            cmdline = ' '.join(proc.info['cmdline'] or [])
+            if ('python' in proc.info['name'].lower() or 
+                'python3' in proc.info['name'].lower()) and \
+               ('laptop_tracker' in cmdline or 
+                'track-laptop-usage.sh' in cmdline):
+                logger.debug(f"Stopping tracker process {proc.info['pid']} - {cmdline}")
                 proc.terminate()
                 found = True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -116,18 +119,25 @@ def stop(debug):
     
     if not found:
         logger.debug("No Python tracker processes found")
+    else:
+        logger.info("Successfully stopped Python tracker processes")
 
     # Stop bash trackers (legacy)
     try:
         output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
         if output:
+            pids = []
             for pid in output.split('\n'):
                 try:
                     logger.debug(f"Stopping bash tracker process {pid}")
                     os.kill(int(pid), signal.SIGTERM)
+                    pids.append(pid)
                 except ProcessLookupError:
                     continue
-            logger.info("Tracker stopped (killed PIDs: %s)", output.replace('\n', ', '))
+            if pids:
+                logger.info("Stopped bash tracker processes (PIDs: %s)", ', '.join(pids))
+            else:
+                logger.info("No running bash tracker processes found")
         else:
             logger.info("No bash tracker processes found")
     except subprocess.CalledProcessError:
