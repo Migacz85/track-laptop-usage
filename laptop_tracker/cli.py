@@ -22,71 +22,102 @@ def cli():
     pass
 
 @cli.command()
-def start():
+@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option('--daemon', is_flag=True, help='Run as daemon in background')
+def start(debug, daemon):
     """Start tracking laptop usage"""
+    # Set log level
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    
     if LaptopTracker.is_running():
         logging.warning("Tracker is already running")
         return
     
-    # Start both daily and hourly trackers in separate processes
-    try:
-        import multiprocessing
-        
-        def run_tracker(track_type):
-            tracker = LaptopTracker(track_type=track_type)
-            tracker.start()
-        
-        # Create separate processes for each tracker
-        daily_process = multiprocessing.Process(
-            target=run_tracker, 
-            args=('daily',)
-        )
-        hourly_process = multiprocessing.Process(
-            target=run_tracker,
-            args=('hourly',)
-        )
-        
-        # Start both processes
-        daily_process.start()
-        hourly_process.start()
-        
-        # Keep the main process running
-        while True:
-            time.sleep(1)
+    def run_trackers():
+        try:
+            import multiprocessing
             
-    except Exception as e:
-        logging.error(f"Error starting tracker: {e}")
-        raise click.Abort()
+            def run_tracker(track_type):
+                tracker = LaptopTracker(track_type=track_type)
+                tracker.start()
+            
+            # Create separate processes for each tracker
+            daily_process = multiprocessing.Process(
+                target=run_tracker, 
+                args=('daily',)
+            )
+            hourly_process = multiprocessing.Process(
+                target=run_tracker,
+                args=('hourly',)
+            )
+            
+            # Start both processes
+            daily_process.start()
+            hourly_process.start()
+            
+            if not daemon:
+                # Keep the main process running if not daemon
+                while True:
+                    time.sleep(1)
+            
+        except Exception as e:
+            logging.error(f"Error starting tracker: {e}")
+            raise click.Abort()
+
+    if daemon:
+        # Daemonize the process
+        pid = os.fork()
+        if pid > 0:
+            # Parent process exits
+            return
+        # Child process continues
+        run_trackers()
+    else:
+        run_trackers()
 
 @cli.command()
-def stop():
+@click.option('--debug', is_flag=True, help='Enable debug logging')
+def stop(debug):
     """Stop tracking laptop usage"""
-    # The tracker will stop automatically when the process is terminated
-    logging.info("Tracker will stop when the process is terminated")
+    # Set log level
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
 
-@cli.command()
-def stop():
-    """Stop tracking laptop usage"""
+    # Stop Python trackers
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            if 'python' in proc.info['name'].lower() and \
+               'laptop_tracker' in ' '.join(proc.info['cmdline'] or []):
+                logging.debug(f"Stopping tracker process {proc.info['pid']}")
+                proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+
+    # Stop bash trackers (legacy)
     try:
         output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
         if output:
             for pid in output.split('\n'):
                 try:
+                    logging.debug(f"Stopping bash tracker process {pid}")
                     os.kill(int(pid), signal.SIGTERM)
                 except ProcessLookupError:
                     continue
-            print("Tracker stopped (killed PIDs:", output.replace('\n', ', '), ")")
+            logging.info("Tracker stopped (killed PIDs: %s)", output.replace('\n', ', '))
         else:
-            print("No tracker process found")
+            logging.info("No tracker process found")
     except subprocess.CalledProcessError:
-        print("No tracker process found")
+        logging.info("No tracker process found")
 
 @cli.command()
-def restart():
+@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option('--daemon', is_flag=True, help='Run as daemon in background')
+def restart(debug, daemon):
     """Restart tracking laptop usage"""
-    stop()
+    stop(debug=debug)
     time.sleep(1)  # Give it a moment to stop
-    start()
+    start(debug=debug, daemon=daemon)
 
 @cli.command()
 def status():
@@ -162,10 +193,14 @@ def hourly():
     plt.show()
 
 @cli.command()
+@click.option('--debug', is_flag=True, help='Enable debug logging')
 @click.option('--daily', is_flag=True, help='Show daily usage summary')
 @click.option('--hour', is_flag=True, help='Show hourly usage details')
-def logs(daily, hour):
+def logs(debug, daily, hour):
     """Show usage data - daily summary or hourly details"""
+    # Set log level
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
     log_dir = Path(__file__).parent.parent / "log"
     daily_log_file = log_dir / "daily-laptop.log"
     
