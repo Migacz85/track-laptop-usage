@@ -2,7 +2,7 @@
 set -e
 
 TRACK_TYPE=${1:-daily}
-LOG_FILE=${2:-$TRACK_TYPE-laptop.log}
+LOG_FILE=${2:-daily-laptop.log}  # Default to daily log file
 TRACK_TILL=120  # seconds of idle time
 SLEEP_TIME=60   # seconds between checks
 LOG_DIR="$(dirname "$0")/../log"

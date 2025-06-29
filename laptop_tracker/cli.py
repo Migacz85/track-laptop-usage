@@ -16,7 +16,8 @@ def cli():
 def get_tracker_pid():
     """Get PID of running tracker process"""
     try:
-        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh"]).decode().strip()
+        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh hourly"]).decode().strip()
+        output += "\n" + subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh daily"]).decode().strip()
         if not output:
             return None
         # Get the newest PID (last one in the list)
@@ -37,8 +38,15 @@ def start():
         return
     
     # Start in background with nohup
+    # Start both daily and hourly trackers
     subprocess.Popen(
         ["nohup", str(script_path), "daily", "daily-laptop.log"],
+        stdout=open('/dev/null', 'w'),
+        stderr=open('/dev/null', 'w'),
+        preexec_fn=os.setpgrp
+    )
+    subprocess.Popen(
+        ["nohup", str(script_path), "hourly", "hourly-laptop.log"],
         stdout=open('/dev/null', 'w'),
         stderr=open('/dev/null', 'w'),
         preexec_fn=os.setpgrp
@@ -85,7 +93,7 @@ def status():
 def daily():
     """Show daily usage chart"""
     log_dir = Path(__file__).parent.parent / "log"
-    daily_log_file = log_dir / "daily-laptop.log"
+    daily_log_file = log_dir / "hourly-laptop.log"
     
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
     # Handle multiple timestamp formats
