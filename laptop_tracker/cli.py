@@ -348,57 +348,76 @@ def hourly(debug):
     daily_log_file = log_dir / "daily-laptop.log"
     
     # Read and parse the log file
-    daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    
-    # Convert timestamp to datetime
-    daily_df['date'] = pd.to_datetime(
-        daily_df['date'],
-        format='%Y/%m/%d %H:%M',
-        errors='coerce'
-    )
-    
-    # Handle any invalid timestamps
-    if daily_df['date'].isna().any():
-        logging.warning("Some timestamps could not be parsed")
-        daily_df = daily_df[daily_df['date'].notna()]
-    
-    # Convert usage to hours
-    daily_df['usage_hours'] = daily_df['usage'] / 3600
-    
-    # Extract hour and day
-    daily_df['hour'] = daily_df['date'].dt.hour
-    daily_df['day'] = daily_df['date'].dt.date
-    
-    # Create complete grid of all hours and days
-    all_hours = pd.DataFrame({'hour': range(24)})
-    all_days = pd.DataFrame({'day': daily_df['day'].unique()})
-    complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
-    
-    # Merge with actual data
-    merged_df = complete_grid.merge(
-        daily_df[['day', 'hour', 'usage_hours']],
-        on=['day', 'hour'],
-        how='left'
-    ).fillna(0)
-    
-    # Create heatmap data
-    heatmap_data = merged_df.pivot_table(
-        index='hour',
-        columns='day',
-        values='usage_hours',
-        aggfunc='sum'
-    )
-    
-    # Sort columns (days) chronologically
-    heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
-    
-    plt.figure(figsize=(12, 6))
-    sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
-    plt.title('Hourly Usage Heatmap')
-    plt.xlabel('Date')
-    plt.ylabel('Hour of Day')
-    plt.tight_layout()
-    plt.show()
+    try:
+        daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
+        
+        # Convert timestamp to datetime
+        daily_df['date'] = pd.to_datetime(
+            daily_df['date'],
+            format='%Y/%m/%d %H:%M',
+            errors='coerce'
+        )
+        
+        # Handle any invalid timestamps
+        if daily_df['date'].isna().any():
+            logging.warning("Some timestamps could not be parsed")
+            daily_df = daily_df[daily_df['date'].notna()]
+        
+        # Check if we have any valid data
+        if len(daily_df) == 0:
+            logging.warning("No valid data found in log file")
+            print("No usage data available to display")
+            return
+        
+        # Convert usage to hours
+        daily_df['usage_hours'] = daily_df['usage'] / 3600
+        
+        # Extract hour and day
+        daily_df['hour'] = daily_df['date'].dt.hour
+        daily_df['day'] = daily_df['date'].dt.date
+        
+        # Create complete grid of all hours and days
+        all_hours = pd.DataFrame({'hour': range(24)})
+        all_days = pd.DataFrame({'day': daily_df['day'].unique()})
+        complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
+        
+        # Merge with actual data
+        merged_df = complete_grid.merge(
+            daily_df[['day', 'hour', 'usage_hours']],
+            on=['day', 'hour'],
+            how='left'
+        ).fillna(0)
+        
+        # Create heatmap data
+        heatmap_data = merged_df.pivot_table(
+            index='hour',
+            columns='day',
+            values='usage_hours',
+            aggfunc='sum'
+        )
+        
+        # Sort columns (days) chronologically
+        heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
+        
+        # Check if we have any non-zero data to plot
+        if heatmap_data.sum().sum() == 0:
+            print("No usage data available to display")
+            return
+        
+        plt.figure(figsize=(12, 6))
+        sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
+        plt.title('Hourly Usage Heatmap')
+        plt.xlabel('Date')
+        plt.ylabel('Hour of Day')
+        plt.tight_layout()
+        plt.show()
+        
+    except pd.errors.EmptyDataError:
+        logging.warning("Log file is empty")
+        print("No usage data available to display")
+    except Exception as e:
+        logging.error(f"Error generating heatmap: {e}")
+        print("Failed to generate heatmap. Check logs for details.")
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
