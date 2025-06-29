@@ -22,15 +22,35 @@ get_timestamp() {
     esac
 }
 
-# Check if user is idle
+# Check if user is idle using multiple methods
 is_idle() {
-    if ! command -v xprintidle &> /dev/null; then
-        echo "xprintidle not found! Please install it with: sudo apt-get install xprintidle" >&2
-        exit 1
+    # Method 1: Check X11 idle time
+    if command -v xprintidle &> /dev/null; then
+        idle_ms=$(xprintidle)
+        idle_sec=$((idle_ms / 1000))
+        if (( idle_sec > TRACK_TILL )); then
+            return 0
+        fi
     fi
-    idle_ms=$(xprintidle)
-    idle_sec=$((idle_ms / 1000))
-    [[ $idle_sec -gt $TRACK_TILL ]]
+
+    # Method 2: Check console idle time
+    if who -u &> /dev/null; then
+        console_idle=$(who -u | awk '{print $6}' | cut -d: -f2)
+        if (( console_idle > TRACK_TILL )); then
+            return 0
+        fi
+    fi
+
+    # Method 3: Fallback to /proc/uptime
+    if [[ -f /proc/uptime ]]; then
+        read -r uptime idle_time < /proc/uptime
+        if (( $(echo "$idle_time > $TRACK_TILL" | bc -l) )); then
+            return 0
+        fi
+    fi
+
+    # If none of the methods detected idle, assume active
+    return 1
 }
 
 # Initialize log file if needed

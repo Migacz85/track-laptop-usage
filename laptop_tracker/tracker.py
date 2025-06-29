@@ -1,5 +1,6 @@
 import time
 import logging
+import subprocess
 from datetime import datetime
 from pathlib import Path
 import psutil
@@ -43,16 +44,41 @@ class LaptopTracker:
             raise ValueError(f"Invalid track type: {self.track_type}")
 
     def _is_idle(self):
-        """Check if user is idle using system uptime and process activity"""
+        """Check if user is idle using multiple methods"""
         try:
-            # Get system idle time (Linux specific)
-            with open('/proc/uptime', 'r') as f:
-                uptime, idle_time = map(float, f.read().split())
+            # Method 1: Check X11 idle time (for GUI sessions)
+            try:
+                idle_ms = int(subprocess.check_output(['xprintidle']).decode().strip())
+                idle_sec = idle_ms / 1000
+                if idle_sec > self.idle_threshold:
+                    return True
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                pass
+                
+            # Method 2: Check console idle time (for terminal sessions)
+            try:
+                idle_sec = int(subprocess.check_output([
+                    'who', '-u', 
+                    '|', 'awk', '\'{print $6}\'', 
+                    '|', 'cut', '-d:', '-f2'
+                ]).decode().strip())
+                if idle_sec > self.idle_threshold:
+                    return True
+            except (subprocess.CalledProcessError, ValueError):
+                pass
+                
+            # Method 3: Fallback to /proc/uptime
+            try:
+                with open('/proc/uptime', 'r') as f:
+                    uptime, idle_time = map(float, f.read().split())
+                if idle_time > self.idle_threshold:
+                    return True
+            except Exception:
+                pass
+                
+            # If none of the methods detected idle, assume active
+            return False
             
-            idle_sec = idle_time
-            is_idle = idle_sec > self.idle_threshold
-            logging.debug(f"Idle check: {idle_sec}s (threshold: {self.idle_threshold}s) - {'Idle' if is_idle else 'Active'}")
-            return is_idle
         except Exception as e:
             logging.warning(f"Could not check idle time: {e}")
             return False
