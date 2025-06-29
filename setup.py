@@ -10,6 +10,7 @@ setup(
         "pandas>=1.0.0",
         "seaborn>=0.10.0",
         "numpy>=1.23.0",
+        "psutil>=5.8.0",
     ],
     entry_points={
         "console_scripts": [
@@ -18,7 +19,4 @@ setup(
     },
     python_requires=">=3.6",
     include_package_data=True,
-    package_data={
-        "": ["bin/*.sh"],
-    },
 )

@@ -1,57 +1,47 @@
 import click
-import os
-import signal
-import subprocess
-import time
+import logging
 from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from .tracker import LaptopTracker
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 @click.group()
 def cli():
     """Laptop Usage Tracker"""
     pass
 
-def get_tracker_pid():
-    """Get PID of running tracker process"""
-    try:
-        output = subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh hourly"]).decode().strip()
-        output += "\n" + subprocess.check_output(["pgrep", "-f", "track-laptop-usage.sh daily"]).decode().strip()
-        if not output:
-            return None
-        # Get the newest PID (last one in the list)
-        pids = [int(pid) for pid in output.split('\n')]
-        return pids[-1]
-    except subprocess.CalledProcessError:
-        return None
-
 @cli.command()
 def start():
     """Start tracking laptop usage"""
-    script_path = Path(__file__).parent.parent / "bin" / "track-laptop-usage.sh"
-    log_dir = Path(__file__).parent.parent / "log"
-    log_dir.mkdir(exist_ok=True)
-    
-    if get_tracker_pid():
-        print("Tracker is already running")
+    if LaptopTracker.is_running():
+        logging.warning("Tracker is already running")
         return
     
-    # Start in background with nohup
     # Start both daily and hourly trackers
-    subprocess.Popen(
-        ["nohup", str(script_path), "daily", "daily-laptop.log"],
-        stdout=open('/dev/null', 'w'),
-        stderr=open('/dev/null', 'w'),
-        preexec_fn=os.setpgrp
-    )
-    subprocess.Popen(
-        ["nohup", str(script_path), "hourly", "hourly-laptop.log"],
-        stdout=open('/dev/null', 'w'),
-        stderr=open('/dev/null', 'w'),
-        preexec_fn=os.setpgrp
-    )
-    print("Tracker started")
+    try:
+        daily_tracker = LaptopTracker(track_type='daily')
+        hourly_tracker = LaptopTracker(track_type='hourly')
+        
+        # Run both trackers in the same process
+        while True:
+            daily_tracker.start()
+            hourly_tracker.start()
+    except Exception as e:
+        logging.error(f"Error starting tracker: {e}")
+        raise click.Abort()
+
+@cli.command()
+def stop():
+    """Stop tracking laptop usage"""
+    # The tracker will stop automatically when the process is terminated
+    logging.info("Tracker will stop when the process is terminated")
 
 @cli.command()
 def stop():
