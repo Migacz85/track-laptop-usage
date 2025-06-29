@@ -65,6 +65,19 @@ def is_bash_tracker_running():
         """Run all tracking processes with status logging"""
         logging.debug("Initializing tracking processes...")
         try:
+            daily_tracker = LaptopTracker(track_type='daily')
+            hourly_tracker = LaptopTracker(track_type='hourly')
+            
+            logging.info("Starting daily tracker...")
+            daily_tracker.start()
+            
+            logging.info("Starting hourly tracker...")
+            hourly_tracker.start()
+            
+        except Exception as e:
+            logging.error(f"Failed to start trackers: {e}")
+            raise
+        try:
             import multiprocessing
             
             def run_tracker(track_type):
@@ -107,9 +120,15 @@ def is_bash_tracker_running():
     
     # Start trackers with status output
     logging.info("Starting tracking processes...")
-    run_trackers()
-    
-    logging.info("Tracker is now running. Press Ctrl+C to stop.")
+    try:
+        run_trackers(foreground=True)
+        logging.info("Tracker is now running. Press Ctrl+C to stop.")
+        while True:
+            time.sleep(1)  # Keep main process alive
+    except KeyboardInterrupt:
+        logging.info("Shutting down tracker...")
+    except Exception as e:
+        logging.error(f"Tracker failed: {e}")
 
 @cli.command()
 @click.option('--debug', is_flag=True, help='Enable verbose debug logging')
