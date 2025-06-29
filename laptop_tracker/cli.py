@@ -474,25 +474,23 @@ def logs(debug, daily, hour):
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
             
-            # Format the timestamp based on its type
+            # Extract hour from timestamp
             if isinstance(row['date'], pd.Timestamp):
-                if row['date'].hour == 0 and row['date'].minute == 0:
-                    # Daily format
-                    print(f"{row['date'].strftime('%Y/%m/%d')} 00:00 - {time_str}")
-                else:
-                    # Hourly format
-                    print(f"{row['date'].strftime('%Y/%m/%d %H')}:00 - {time_str}")
+                hour = row['date'].hour
             else:
-                # Fallback for string format
+                # For string format
                 if ' ' in str(row['date']):
-                    date_part, hour_part = str(row['date']).split(' ')
-                    # Check if hour_part is a valid hour
-                    if hour_part.isdigit() and 0 <= int(hour_part) <= 23:
-                        print(f"{date_part} {hour_part}:00 - {time_str}")
-                    else:
-                        print(f"{date_part} 00:00 - {time_str}")
+                    hour = int(str(row['date']).split(' ')[1])
                 else:
-                    print(f"{row['date']} 00:00 - {time_str}")
+                    hour = 0
+            
+            # Format the display timestamp
+            if isinstance(row['date'], pd.Timestamp):
+                date_str = row['date'].strftime('%Y/%m/%d')
+            else:
+                date_str = str(row['date']).split(' ')[0]
+            
+            print(f"{date_str} {hour:02d}:00 - {time_str}")
 
 if __name__ == "__main__":
     cli()
