@@ -55,10 +55,21 @@ init_log() {
 # Update log with current usage
 update_log() {
     local timestamp=$(get_timestamp)
-    local last_line=$(tail -n 1 "$LOG_PATH")
+    
+    # Use a temporary file for atomic updates
+    local temp_file="${LOG_PATH}.tmp"
+    
+    # Read the entire log file
+    local lines=()
+    while IFS= read -r line; do
+        lines+=("$line")
+    done < "$LOG_PATH"
+    
+    # Get the last line
+    local last_line="${lines[-1]}"
     local last_date=${last_line%% *}
     local last_usage=${last_line##* }
-
+    
     # For hourly tracking, compare just the date and hour portion
     if [[ "$TRACK_TYPE" == "hourly" ]]; then
         last_compare_date=$(echo "$last_date" | cut -d' ' -f1-2)
@@ -67,14 +78,21 @@ update_log() {
         last_compare_date=$last_date
         current_compare_date=$timestamp
     fi
-
+    
+    # Update or add entry
     if [[ "$last_compare_date" == "$current_compare_date" ]]; then
-        # Update existing entry by modifying the last line
-        sed -i '$s/.*/'"$timestamp $((last_usage + SLEEP_TIME))"'/' "$LOG_PATH"
+        # Update the last line
+        lines[-1]="$timestamp $((last_usage + SLEEP_TIME))"
     else
-        # Add new entry with consistent format
-        echo "$timestamp $SLEEP_TIME" >> "$LOG_PATH"
+        # Add new entry
+        lines+=("$timestamp $SLEEP_TIME")
     fi
+    
+    # Write to temporary file
+    printf "%s\n" "${lines[@]}" > "$temp_file"
+    
+    # Atomically move the temporary file to the log file
+    mv -f "$temp_file" "$LOG_PATH"
 }
 
 # Main loop
