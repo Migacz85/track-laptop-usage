@@ -349,7 +349,7 @@ def hourly(debug):
     log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
     daily_log_file = log_dir / "hourly-laptop.log"
     
-    # Read and parse the log file manually
+    # Read and parse the log file with consistent timestamp handling
     try:
         data = []
         with open(daily_log_file, 'r') as f:
@@ -357,37 +357,36 @@ def hourly(debug):
                 line = line.strip()
                 if not line:
                     continue
+                    
+                # Split on last space only (handles timestamps with spaces)
                 parts = line.rsplit(' ', 1)
-                if len(parts) == 2:
-                    try:
-                        timestamp = parts[0]
-                        usage = int(parts[1])
+                if len(parts) != 2:
+                    continue
+                        
+                timestamp, usage = parts[0], parts[1]
+                    
+                try:
+                    usage = int(usage)
+                        
+                    # Standardize timestamp format - replace | with space
+                    timestamp = timestamp.replace('|', ' ')
+                        
+                    # Parse into datetime object
+                    if ' ' in timestamp:  # Has hour component
+                        date_str, hour_str = timestamp.split(' ')
+                        hour = int(hour_str.split(':')[0])
+                        date_obj = pd.to_datetime(date_str).replace(hour=hour)
+                    else:  # Date only
+                        date_obj = pd.to_datetime(timestamp)
+                        hour = 0
                             
-                        # Parse timestamp and extract components
-                        if '|' in timestamp:
-                            date_part, hour_part = timestamp.split('|')
-                            hour = int(hour_part.split(':')[0]) if ':' in hour_part else int(hour_part)
-                            date_str = date_part
-                        else:
-                            if ' ' in timestamp and ':' in timestamp:
-                                date_part, time_part = timestamp.split(' ')
-                                hour = int(time_part.split(':')[0])
-                                date_str = date_part
-                            else:
-                                # Handle case where timestamp has no hour info
-                                date_str = timestamp
-                                hour = 0
-                            
-                        # Create datetime object with correct hour
-                        date_obj = pd.to_datetime(date_str)
-                        if ' ' in timestamp or '|' in timestamp:
-                            date_obj = date_obj.replace(hour=hour)
-                            
-                        data.append({
-                            'date': date_obj,
-                            'hour': hour,
-                            'usage': usage
-                        })
+                    data.append({
+                        'date': date_obj,
+                        'hour': hour, 
+                        'usage': usage,
+                        'day': date_obj.date()  # Add date-only column
+                    })
+                        
                     except ValueError as e:
                         logging.warning(f"Skipping malformed line: {line} - {e}")
                         continue
@@ -399,21 +398,14 @@ def hourly(debug):
                 
         daily_df = pd.DataFrame(data)
         daily_df['usage_hours'] = daily_df['usage'] / 3600
-            
-        # Debug output to verify hour values
-        logging.debug("Sample parsed data:")
+        
+        # Debug output to verify data
+        logging.debug(f"Found {len(daily_df)} log entries")
+        logging.debug("Sample data:")
         logging.debug(daily_df.head())
         
-        # Debug output to show what data was found
-        logging.debug(f"Found {len(daily_df)} log entries")
-        logging.debug(f"Sample data:\n{daily_df.head()}")
-        
-        # Convert usage to hours
-        daily_df['usage_hours'] = daily_df['usage'] / 3600
-        
-        # Extract hour and day
-        daily_df['hour'] = daily_df['date'].dt.hour
-        daily_df['day'] = daily_df['date'].dt.date
+        # Ensure we have datetime types
+        daily_df['day'] = pd.to_datetime(daily_df['day'])
         
         # Create complete grid for past 30 days
         end_date = datetime.now().date()
@@ -447,14 +439,17 @@ def hourly(debug):
         # Ensure we have exactly 30 days worth of data
         merged_df = merged_df[merged_df['day'].isin(date_range)]
         
-        # Create heatmap data with proper hour mapping
+        # Create heatmap data - ensure proper alignment
         heatmap_data = merged_df.pivot_table(
             index='hour',
             columns='day',
             values='usage_hours',
             aggfunc='sum',
             fill_value=0
-        )
+        ).astype(float)  # Ensure numeric type
+        
+        # Apply square root scaling for better visibility of small values
+        heatmap_data = np.sqrt(heatmap_data)
         
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
