@@ -15,7 +15,7 @@ mkdir -p "$LOG_DIR"
 get_timestamp() {
     case "$TRACK_TYPE" in
         daily)   date +'%Y/%m/%d' ;;
-        hourly)  date +'%Y/%m/%d %H:00' ;;
+        hourly)  date +'%Y/%m/%d %H:00' -d "now" ;;
         minutes) date +'%Y/%m/%d %H:%M' ;;
         *)       echo "Invalid track type: $TRACK_TYPE"; exit 1 ;;
     esac
