@@ -37,6 +37,8 @@ tmp/
 # Aider files
 .aider*
 .aider*/
+.aider.chat.history.md
+.aider.input.history
 
 # Swap files
 .*.swp
