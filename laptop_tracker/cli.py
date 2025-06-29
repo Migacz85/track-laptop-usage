@@ -410,18 +410,26 @@ def logs(debug, daily, hour):
         daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0, 
                              names=['date', 'usage'], skipinitialspace=True)
         
-        # Convert timestamp to datetime with flexible parsing
+        # Handle both daily and hourly formats
         daily_df['date'] = pd.to_datetime(
             daily_df['date'],
             format='%Y/%m/%d %H',  # Try hourly format first
-            errors='coerce'  # Don't fail on invalid formats
+            errors='coerce'
         )
         
-        # Fill any invalid dates with daily format
+        # For daily format entries, add default hour
         if daily_df['date'].isna().any():
             daily_df['date'] = pd.to_datetime(
                 daily_df['date'].fillna('').astype(str) + ' 00',  # Add default hour
                 format='%Y/%m/%d %H',
+                errors='coerce'
+            )
+            
+        # If still invalid, try pure daily format
+        if daily_df['date'].isna().any():
+            daily_df['date'] = pd.to_datetime(
+                daily_df['date'].fillna('').astype(str),
+                format='%Y/%m/%d',
                 errors='coerce'
             )
             
@@ -468,15 +476,21 @@ def logs(debug, daily, hour):
             # Format time nicely with leading zeros
             time_str = f"{hours:02d}:{mins:02d}"
             
-            # Handle different timestamp formats
-            if ' ' in str(row['date']):
-                # For hourly data with timestamp like "2025/06/29 00"
-                date_part = str(row['date']).split(' ')[0]
-                hour_part = str(row['date']).split(' ')[1]
-                print(f"{date_part} {hour_part}:00 - {time_str}")
+            # Format the timestamp based on its type
+            if isinstance(row['date'], pd.Timestamp):
+                if row['date'].hour == 0 and row['date'].minute == 0:
+                    # Daily format
+                    print(f"{row['date'].strftime('%Y/%m/%d')} 00:00 - {time_str}")
+                else:
+                    # Hourly format
+                    print(f"{row['date'].strftime('%Y/%m/%d %H')}:00 - {time_str}")
             else:
-                # For daily data
-                print(f"{row['date']} 00:00 - {time_str}")
+                # Fallback for string format
+                if ' ' in str(row['date']):
+                    date_part, hour_part = str(row['date']).split(' ')
+                    print(f"{date_part} {hour_part}:00 - {time_str}")
+                else:
+                    print(f"{row['date']} 00:00 - {time_str}")
 
 if __name__ == "__main__":
     cli()
