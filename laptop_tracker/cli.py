@@ -473,9 +473,16 @@ def logs(debug, daily, hour):
                 continue
             parts = line.rsplit(' ', 1)  # Split on last space only
             if len(parts) == 2:
-                data.append(parts)
+                try:
+                    # Convert usage to integer
+                    parts[1] = int(parts[1])
+                    data.append(parts)
+                except ValueError:
+                    logging.warning(f"Skipping malformed line: {line}")
+                    continue
         
         daily_df = pd.DataFrame(data, columns=['date', 'usage'])
+        daily_df['usage'] = pd.to_numeric(daily_df['usage'], errors='coerce')
         
         # Convert timestamp with consistent format
         daily_df['date'] = pd.to_datetime(
