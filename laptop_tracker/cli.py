@@ -399,10 +399,14 @@ def hourly(debug):
         # Sort columns (days) chronologically
         heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
         
-        # Check if we have any non-zero data to plot
-        if heatmap_data.sum().sum() == 0:
-            print("No usage data available to display")
-            return
+        # Ensure we have all 24 hours even if empty
+        heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
+        
+        # Ensure we have at least one day
+        if len(heatmap_data.columns) == 0:
+            # Create a single day with all zeros
+            today = datetime.now().date()
+            heatmap_data[today] = 0
         
         plt.figure(figsize=(12, 6))
         sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
