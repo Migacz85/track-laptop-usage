@@ -63,18 +63,24 @@ update_log() {
         current_date=${line%% *}
         current_usage=${line##* }
         
-        # Check if this is the current hour/day
+        # Check if this is the current hour
         if [[ "$current_date" == "$timestamp" ]]; then
             # Update the usage for this period
-            lines[$i]="$timestamp $((current_usage + SLEEP_TIME))"
+            if ! is_idle; then
+                lines[$i]="$timestamp $((current_usage + SLEEP_TIME))"
+            fi
             updated=true
             break
         fi
     done
     
-    # If we didn't find an entry for this period, add a new one
+    # If we didn't find an entry for this hour, add a new one
     if ! $updated; then
-        lines+=("$timestamp $SLEEP_TIME")
+        if ! is_idle; then
+            lines+=("$timestamp $SLEEP_TIME")
+        else
+            lines+=("$timestamp 0")
+        fi
     fi
     
     # Write all lines to temporary file
