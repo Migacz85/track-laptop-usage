@@ -53,6 +53,34 @@ def start(debug, foreground):
         logging.warning("Tracker is already running")
         return
 
+    # Verify dependencies
+    try:
+        subprocess.check_output(['xprintidle', '--version'])
+        logging.debug("xprintidle is available")
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logging.error("xprintidle not found - idle detection won't work")
+        logging.error("Please install xprintidle: sudo apt install xprintidle")
+        return
+
+    # Start trackers
+    try:
+        daily_tracker = LaptopTracker(track_type='daily')
+        hourly_tracker = LaptopTracker(track_type='hourly')
+        
+        logging.info("Starting daily tracker...")
+        daily_tracker.start()
+        
+        logging.info("Starting hourly tracker...")
+        hourly_tracker.start()
+        
+        logging.info("Tracker is now running. Press Ctrl+C to stop.")
+        while True:
+            time.sleep(1)  # Keep main process alive
+    except KeyboardInterrupt:
+        logging.info("Shutting down tracker...")
+    except Exception as e:
+        logging.error(f"Failed to start tracker: {e}")
+
 def is_bash_tracker_running():
     """Check if bash tracker process is running"""
     try:
