@@ -33,19 +33,15 @@ class LaptopTracker:
             self._log_entry(0)  # Initialize with 0 usage
 
     def _get_timestamp(self):
-        """Get current timestamp in consistent format"""
+        """Get current timestamp in heatmap-friendly format"""
         now = datetime.now()
         if self.track_type == 'daily':
-            return now.strftime('%Y/%m/%d 00:00')
+            return now.strftime('%Y/%m/%d')
         elif self.track_type == 'hourly':
-            # Only update the hour if we're past the first minute
-            if now.minute > 0:
-                return now.strftime('%Y/%m/%d %H:00')
-            else:
-                # If it's exactly on the hour, use previous hour
-                return (now - timedelta(hours=1)).strftime('%Y/%m/%d %H:00')
+            # Always use current hour for heatmap data
+            return f"{now.strftime('%Y/%m/%d')}|{now.hour}"
         elif self.track_type == 'minutes':
-            return now.strftime('%Y/%m/%d %H:%M')
+            return now.strftime('%Y/%m/%d|%H:%M')
         else:
             raise ValueError(f"Invalid track type: {self.track_type}")
 
@@ -106,10 +102,14 @@ class LaptopTracker:
         else:
             entries[timestamp] = usage
 
-        # Write updated log with consistent formatting
+        # Write updated log in heatmap-friendly format
         with open(self.log_file, 'w') as f:
             f.write("date usage\n")
             for ts, usage in sorted(entries.items()):
+                # Convert timestamp to heatmap format if needed
+                if '|' not in ts and ' ' in ts:
+                    date_part, time_part = ts.split(' ')
+                    ts = f"{date_part}|{time_part.split(':')[0]}"
                 f.write(f"{ts} {usage}\n")
 
     def _handle_signal(self, signum, frame):
