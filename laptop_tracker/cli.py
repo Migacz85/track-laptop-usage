@@ -22,8 +22,8 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO,
+    format='%(message)s'
 )
 
 @click.group()
@@ -477,9 +477,11 @@ def hourly(debug):
         else:
             vmax = 1
         
-        # Debug output to verify heatmap data
-        logging.debug("Heatmap data preview:")
-        logging.debug(heatmap_data.head())
+        # Print essential heatmap info
+        print("\nHeatmap Summary:")
+        print(f"Date Range: {heatmap_data.columns[0]} to {heatmap_data.columns[-1]}")
+        print(f"Total Usage: {heatmap_data.sum().sum():.1f} hours")
+        print(f"Busiest Hour: {heatmap_data.sum(axis=1).idxmax()}:00")
         
         plt.figure(figsize=(16, 8))
         ax = sns.heatmap(
