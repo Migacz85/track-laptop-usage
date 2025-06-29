@@ -447,9 +447,6 @@ def hourly(debug):
             fill_value=0
         ).astype(float)  # Ensure numeric type
         
-        # Apply square root scaling for better visibility of small values
-        heatmap_data = np.sqrt(heatmap_data)
-        
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
         
@@ -467,14 +464,15 @@ def hourly(debug):
         logging.debug("Heatmap data preview:")
         logging.debug(heatmap_data.head())
         
-        # Apply logarithmic scaling for better visibility of small values
-        heatmap_data = heatmap_data + 0.01  # Add small value to avoid log(0)
-        heatmap_data = np.log10(heatmap_data)
-        
-        # Normalize to 0-1 range
+        # Apply linear scaling with adjusted vmax
         max_val = heatmap_data.max().max()
         if max_val > 0:
-            heatmap_data = heatmap_data / max_val
+            # Set vmax to 90th percentile to make patterns more visible
+            vmax = np.percentile(heatmap_data.values, 90)
+            if vmax == 0:  # Fallback if all values are same
+                vmax = max_val
+        else:
+            vmax = 1
         
         # Debug output to verify heatmap data
         logging.debug("Heatmap data preview:")
@@ -484,9 +482,9 @@ def hourly(debug):
         ax = sns.heatmap(
             heatmap_data,
             cmap='YlGnBu',
-            cbar_kws={'label': 'Usage (log scale)'},
+            cbar_kws={'label': 'Usage (hours)'},
             vmin=0,
-            vmax=1,
+            vmax=vmax,
             square=True,
             linewidths=0.3,
             linecolor='white',
