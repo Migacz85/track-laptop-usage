@@ -2,7 +2,7 @@ import os
 import time
 import logging
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import psutil
 import signal
@@ -38,7 +38,12 @@ class LaptopTracker:
         if self.track_type == 'daily':
             return now.strftime('%Y/%m/%d 00:00')
         elif self.track_type == 'hourly':
-            return now.strftime('%Y/%m/%d %H:00')
+            # Only update the hour if we're past the first minute
+            if now.minute > 0:
+                return now.strftime('%Y/%m/%d %H:00')
+            else:
+                # If it's exactly on the hour, use previous hour
+                return (now - timedelta(hours=1)).strftime('%Y/%m/%d %H:00')
         elif self.track_type == 'minutes':
             return now.strftime('%Y/%m/%d %H:%M')
         else:
