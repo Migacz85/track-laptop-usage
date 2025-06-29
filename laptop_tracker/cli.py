@@ -364,10 +364,10 @@ def logs(debug, daily, hour):
     if hour:
         # Show hourly details
         daily_df['hour'] = daily_df['date'].dt.hour
-        # Format date string based on track type
-        if ' ' in daily_df['date'].iloc[0]:  # Contains hour info
+        # Format date string based on whether we have hourly data
+        if self.track_type == 'hourly':
             daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d %H:00')
-        else:  # Daily format
+        else:
             daily_df['date_str'] = daily_df['date'].dt.strftime('%Y/%m/%d') + ' 00:00'
         
         print("Hourly Usage Details")
