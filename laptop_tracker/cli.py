@@ -347,32 +347,50 @@ def hourly(debug):
     log_dir.mkdir(exist_ok=True)  # Ensure log directory exists
     daily_log_file = log_dir / "daily-laptop.log"
     
+    # Read and parse the log file
     daily_df = pd.read_csv(daily_log_file, sep=' ', engine='python', header=0)
-    # Handle multiple timestamp formats
+    
+    # Convert timestamp to datetime
     daily_df['date'] = pd.to_datetime(
         daily_df['date'],
-        format='mixed',
-        dayfirst=False
+        format='%Y/%m/%d %H:%M',
+        errors='coerce'
     )
+    
+    # Handle any invalid timestamps
+    if daily_df['date'].isna().any():
+        logging.warning("Some timestamps could not be parsed")
+        daily_df = daily_df[daily_df['date'].notna()]
+    
+    # Convert usage to hours
     daily_df['usage_hours'] = daily_df['usage'] / 3600
+    
+    # Extract hour and day
     daily_df['hour'] = daily_df['date'].dt.hour
     daily_df['day'] = daily_df['date'].dt.date
     
-    # Ensure we have data for all hours
-    daily_df['hour'] = daily_df['date'].dt.hour
-    daily_df['day'] = daily_df['date'].dt.date
-    
-    # Create a complete grid of hours and days
+    # Create complete grid of all hours and days
     all_hours = pd.DataFrame({'hour': range(24)})
     all_days = pd.DataFrame({'day': daily_df['day'].unique()})
     complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
     
     # Merge with actual data
-    merged_df = complete_grid.merge(daily_df, on=['day', 'hour'], how='left')
-    merged_df['usage_hours'] = merged_df['usage_hours'].fillna(0)
+    merged_df = complete_grid.merge(
+        daily_df[['day', 'hour', 'usage_hours']],
+        on=['day', 'hour'],
+        how='left'
+    ).fillna(0)
     
     # Create heatmap data
-    heatmap_data = merged_df.pivot_table(index='hour', columns='day', values='usage_hours', aggfunc='sum')
+    heatmap_data = merged_df.pivot_table(
+        index='hour',
+        columns='day',
+        values='usage_hours',
+        aggfunc='sum'
+    )
+    
+    # Sort columns (days) chronologically
+    heatmap_data = heatmap_data[sorted(heatmap_data.columns)]
     
     plt.figure(figsize=(12, 6))
     sns.heatmap(heatmap_data, cmap='YlGnBu', cbar_kws={'label': 'Usage (hours)'}, vmin=0)
