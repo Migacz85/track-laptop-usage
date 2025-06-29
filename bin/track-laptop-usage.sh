@@ -16,7 +16,7 @@ mkdir -p "$LOG_DIR"
 get_timestamp() {
     case "$TRACK_TYPE" in
         daily)   date +'%Y/%m/%d' ;;
-        hourly)  date +'%Y/%m/%d %H' ;;
+        hourly)  date +'%Y/%m/%d %H' ;;  # Use space as delimiter
         minutes) date +'%Y/%m/%d %H:%M' ;;
         *)       echo "Invalid track type: $TRACK_TYPE" >&2; exit 1 ;;
     esac
@@ -63,11 +63,8 @@ update_log() {
         current_date=${line%% *}
         current_usage=${line##* }
         
-        # Check if this is the current hour (handle both date and hour)
-        current_date_hour=$(echo "$current_date" | cut -d' ' -f1-2)
-        timestamp_hour=$(echo "$timestamp" | cut -d' ' -f1-2)
-        
-        if [[ "$current_date_hour" == "$timestamp_hour" ]]; then
+        # Check if this is the current hour
+        if [[ "$current_date" == "$timestamp" ]]; then
             # Update the usage for this period
             if ! is_idle; then
                 lines[$i]="$timestamp $((current_usage + SLEEP_TIME))"
