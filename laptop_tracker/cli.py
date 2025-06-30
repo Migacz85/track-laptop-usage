@@ -435,9 +435,9 @@ def hourly():
         all_days = pd.DataFrame({'day': unique_days})
         complete_grid = all_days.assign(key=1).merge(all_hours.assign(key=1), on='key').drop('key', axis=1)
         
-        # Merge with actual data
+        # Merge with actual data including both hours and minutes
         merged_df = complete_grid.merge(
-            daily_df[['day', 'hour', 'usage_hours']],
+            daily_df[['day', 'hour', 'usage_hours', 'usage_minutes']],
             on=['day', 'hour'],
             how='left'
         ).fillna(0)
@@ -462,14 +462,16 @@ def hourly():
             fill_value=0
         ).astype(float)  # Ensure numeric type
         
-        # Create annotation data with minutes
+        # Create annotation data with minutes, matching heatmap dimensions
         annot_data = merged_df.pivot_table(
             index='hour',
             columns='day',
-            values='usage_minutes',  # Use minutes for annotations
+            values='usage_minutes',
             aggfunc='sum',
             fill_value=0
         ).astype(float)
+        annot_data = annot_data.reindex(range(24), fill_value=0)
+        annot_data = annot_data[sorted(annot_data.columns)]
         
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
