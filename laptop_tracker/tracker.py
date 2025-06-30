@@ -13,7 +13,7 @@ class LaptopTracker:
         self.track_type = track_type
         self.log_dir = Path(__file__).parent.parent / "log" if log_dir is None else Path(log_dir)
         self.log_file = self.log_dir / f"{track_type}-laptop.log"
-        self.idle_threshold = 120  # seconds
+        self.idle_threshold = 60  # seconds
         self.update_interval = 60  # seconds
         self.running = False
         
