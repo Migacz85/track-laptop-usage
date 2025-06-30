@@ -414,6 +414,8 @@ def hourly():
             return
                 
         daily_df = pd.DataFrame(data)
+        # Convert usage to minutes for annotations
+        daily_df['usage_minutes'] = daily_df['usage'] / 60
         daily_df['usage_hours'] = daily_df['usage'] / 3600
         
         # Print parsed DataFrame
@@ -455,7 +457,7 @@ def hourly():
         heatmap_data = merged_df.pivot_table(
             index='hour',
             columns='day',
-            values='usage_hours',
+            values='usage_minutes',  # Use minutes for annotations
             aggfunc='sum',
             fill_value=0
         ).astype(float)  # Ensure numeric type
@@ -537,11 +539,12 @@ def hourly():
             linewidths=0.3,
             linecolor='white',
             annot=True,
-            fmt=".1f",
+            fmt=".0f",  # Show whole minutes
             annot_kws={
                 'fontsize': 8,
-                'color': 'black',
-                'alpha': 0.7
+                'color': 'white',
+                'alpha': 0.9,
+                'fontweight': 'bold'
             },
             norm=plt.Normalize(vmin, vmax)  # Ensure 100 distinct levels
         )
