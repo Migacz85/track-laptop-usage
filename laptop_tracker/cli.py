@@ -457,10 +457,19 @@ def hourly():
         heatmap_data = merged_df.pivot_table(
             index='hour',
             columns='day',
-            values='usage_minutes',  # Use minutes for annotations
+            values='usage_hours',  # Use hours for color scaling
             aggfunc='sum',
             fill_value=0
         ).astype(float)  # Ensure numeric type
+        
+        # Create annotation data with minutes
+        annot_data = merged_df.pivot_table(
+            index='hour',
+            columns='day',
+            values='usage_minutes',  # Use minutes for annotations
+            aggfunc='sum',
+            fill_value=0
+        ).astype(float)
         
         # Ensure all 24 hours are represented in correct order
         heatmap_data = heatmap_data.reindex(range(24), fill_value=0)
@@ -538,8 +547,8 @@ def hourly():
             square=True,
             linewidths=0.3,
             linecolor='white',
-            annot=True,
-            fmt=".0f",  # Show whole minutes
+            annot=annot_data,  # Use minutes for annotations
+            fmt=".0f",
             annot_kws={
                 'fontsize': 8,
                 'color': 'white',
