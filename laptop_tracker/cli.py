@@ -536,7 +536,13 @@ def hourly():
             square=True,
             linewidths=0.3,
             linecolor='white',
-            annot=False,
+            annot=True,
+            fmt=".1f",
+            annot_kws={
+                'fontsize': 8,
+                'color': 'black',
+                'alpha': 0.7
+            },
             norm=plt.Normalize(vmin, vmax)  # Ensure 100 distinct levels
         )
         
